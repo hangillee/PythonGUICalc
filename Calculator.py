@@ -331,7 +331,7 @@ class ScientificCalc(GeneralCalc):
                 item.grid_forget()
             screenValue = self.getScreenValue(value)
             screenValue.printWindow("산술")
-        elif value == "%":
+        elif value == "sin":
             #연산 결과를 활용해 연계 계산을 위한 조건
             if GeneralCalc.printResult == 1:
                 inputNum.configure(state=NORMAL)
@@ -341,14 +341,16 @@ class ScientificCalc(GeneralCalc):
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
             number = float(inputNum.get("1.0", END))
-            result = str(number/100.0)
+            radian = radians(number)
+            result = str(round(sin(radian), 4))
             inputNum.configure(state=NORMAL)
             #연산 기호를 포함한 출력
-            inputNum.insert(END, value + "\n", "tag-right")
-            inputNum.insert("2.0", "= " + result, "tag-right")
+            inputNum.delete("1.0", END)
+            inputNum.insert("1.0", value+"("+str(number)+")"+"\n", "tag-right")
+            inputNum.insert("2.0", "= "+result, "tag-right")
             inputNum.configure(state="disabled")
             GeneralCalc.printResult = 1
-        elif value == "√x":
+        elif value == "cos":
             #연산 결과를 활용해 연계 계산을 위한 조건
             if GeneralCalc.printResult == 1:
                 inputNum.configure(state=NORMAL)
@@ -358,12 +360,49 @@ class ScientificCalc(GeneralCalc):
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
             number = float(inputNum.get("1.0", END))
-            result = str(sqrt(number))
+            radian = radians(number)
+            result = str(round(cos(radian), 4))
             inputNum.configure(state=NORMAL)
             #연산 기호를 포함한 출력
-            inputNum.insert("1.0","√", "tag-right")
-            inputNum.insert(END, "\n", "tag-right")
-            inputNum.insert("2.0", "= " + result, "tag-right")
+            inputNum.delete("1.0", END)
+            inputNum.insert("1.0", value+"("+str(number)+")"+"\n", "tag-right")
+            inputNum.insert("2.0", "= "+result, "tag-right")
+            inputNum.configure(state="disabled")
+            GeneralCalc.printResult = 1
+        elif value == "tan":
+            #연산 결과를 활용해 연계 계산을 위한 조건
+            if GeneralCalc.printResult == 1:
+                inputNum.configure(state=NORMAL)
+                pastResult = inputNum.get("2.2", "%s" % INSERT)
+                print(pastResult)
+                inputNum.delete("1.0", END)
+                inputNum.insert("1.0", pastResult, "tag-right")
+                inputNum.configure(state="disabled")
+            number = float(inputNum.get("1.0", END))
+            radian = radians(number)
+            result = str(round(tan(radian), 4))
+            inputNum.configure(state=NORMAL)
+            #연산 기호를 포함한 출력
+            inputNum.delete("1.0", END)
+            inputNum.insert("1.0", value+"("+str(number)+")"+"\n", "tag-right")
+            inputNum.insert("2.0", "= "+result, "tag-right")
+            inputNum.configure(state="disabled")
+            GeneralCalc.printResult = 1
+        elif value == "π":
+            if GeneralCalc.printResult == 1:
+                inputNum.configure(state=NORMAL)
+                pastResult = inputNum.get("2.2", "%s" % INSERT)
+                print(pastResult)
+                inputNum.delete("1.0", END)
+                inputNum.insert("1.0", pastResult, "tag-right")
+                inputNum.configure(state="disabled")
+            number = float(inputNum.get("1.0", END))
+            result = str(pi * number)
+            inputNum.configure(state=NORMAL)
+            #연산 기호를 포함한 출력
+            inputNum.delete("1.0", END)
+            inputNum.insert("1.0", str(number)+ "π"+"\n", "tag-right")
+            inputNum.insert("2.0", "= "+result, "tag-right")
             inputNum.configure(state="disabled")
             GeneralCalc.printResult = 1
         elif value == "x²":
@@ -383,7 +422,20 @@ class ScientificCalc(GeneralCalc):
             inputNum.insert("2.0", "= " + result, "tag-right")
             inputNum.configure(state="disabled")
             GeneralCalc.printResult = 1
-        elif value == "1/x":
+        elif value == "xʸ":
+            #연산 결과를 활용해 연계 계산을 위한 조건
+            if GeneralCalc.printResult == 1:
+                inputNum.configure(state=NORMAL)
+                pastResult = inputNum.get("2.2", "%s" % INSERT)
+                print(pastResult)
+                inputNum.delete("1.0", END)
+                inputNum.insert("1.0", pastResult, "tag-right")
+                inputNum.configure(state="disabled")
+            GeneralCalc.printResult = 0
+            inputNum.configure(state=NORMAL)
+            inputNum.insert(INSERT, "**", "tag-right")
+            inputNum.configure(state="disabled")
+        elif value == "√x":
             #연산 결과를 활용해 연계 계산을 위한 조건
             if GeneralCalc.printResult == 1:
                 inputNum.configure(state=NORMAL)
@@ -393,9 +445,30 @@ class ScientificCalc(GeneralCalc):
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
             number = float(inputNum.get("1.0", END))
-            result = str(1/number)
+            result = str(sqrt(number))
             inputNum.configure(state=NORMAL)
-            inputNum.insert("1.0", "1/", "tag-right")
+            #연산 기호를 포함한 출력
+            inputNum.insert("1.0","√", "tag-right")
+            inputNum.insert(END, "\n", "tag-right")
+            inputNum.insert("2.0", "= " + result, "tag-right")
+            inputNum.configure(state="disabled")
+            GeneralCalc.printResult = 1
+        elif value == "10ˣ":
+            #연산 결과를 활용해 연계 계산을 위한 조건
+            if GeneralCalc.printResult == 1:
+                inputNum.configure(state=NORMAL)
+                pastResult = inputNum.get("2.2", "%s" % INSERT)
+                print(pastResult)
+                inputNum.delete("1.0", END)
+                inputNum.insert("1.0", pastResult, "tag-right")
+                inputNum.configure(state="disabled")
+            number = int(inputNum.get("1.0", END))
+            numberStr = str(number)
+            result = str(pow(10, number))
+            inputNum.configure(state=NORMAL)
+            #연산 기호를 포함한 출력
+            inputNum.delete("1.0", END)
+            inputNum.insert("1.0","10^"+numberStr, "tag-right")
             inputNum.insert(END, "\n", "tag-right")
             inputNum.insert("2.0", "= " + result, "tag-right")
             inputNum.configure(state="disabled")

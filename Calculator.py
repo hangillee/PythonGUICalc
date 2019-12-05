@@ -6,6 +6,7 @@ from decimal import Decimal
 window = Tk()
 window.title("종합 계산기")
 window.resizable(0, 0)
+
 font = Font(family="맑은 고딕", size=15)
 screenObject = None
 
@@ -21,6 +22,10 @@ class Calculator:
     #결과 출력 여부 체크
     printResult = 0
 
+    #ZeroDivision 예외 처리를 위한 변수
+    expButtonList = []
+    isZeroDivision = 0
+
     #생성자
     def __init__(self, screen):
         self.setScreenValue(screen)
@@ -32,63 +37,98 @@ class Calculator:
     #버튼 키보드 입력 이벤트
     def pressButtonKey(self, event):
         if event.keycode == 13 or event.char == "=": #Return (결과 반환)
-            result = eval(inputNum.get("1.0", END))
-            strResult = str(result)
-            inputNum.configure(state=NORMAL)
-            inputNum.insert(END, "\n", "tag-right")
-            inputNum.insert("2.0", "= " + strResult, "tag-right")
-            #eval()메소드의 취약점 해결을 위해 버튼을 제외한 임의의 입력 제한
-            inputNum.configure(state="disabled")
-            self.printResult = 1
+            expression = inputNum.get("1.0", END)
+            if expression.find("Mod"):
+                expression = expression.replace("Mod", "%")
+            if expression.find("OR"):
+                expression = expression.replace("OR", "|")
+            if expression.find("XOR"):
+                expression = expression.replace("XOR", "^")
+            if expression.find("AND"):
+                expression = expression.replace("AND", "&")
+            if expression.find("Lsh"):
+                expression = expression.replace("Lsh", "<<")
+            if expression.find("Rsh"):
+                expression = expression.replace("Rsh", ">>")
+            try:
+                result = eval(expression)
+                strResult = str(result)
+                inputNum.configure(state=NORMAL)
+                inputNum.insert(END, "\n", "tag-right")
+                inputNum.insert("2.0", "= " + strResult, "tag-right")
+                # eval()메소드의 취약점 해결을 위해 버튼을 제외한 임의의 입력 제한
+                inputNum.configure(state="disabled")
+                self.printResult = 1
+            except ZeroDivisionError:
+                self.isZeroDivision = 1
+                for expButton in self.expButtonList:
+                    expButton.config(state="disabled")
+                inputNum.configure(state=NORMAL)
+                inputNum.insert(END, "\n", "tag-right")
+                inputNum.insert("2.0", "0으로 나눌 수 없습니다.", "tag-right")
+                inputNum.configure(state="disabled")
+                self.printResult = 1
         elif event.keycode == 27 : #Escape (결과창 초기화)
+            self.printResult = 1
+            self.isZeroDivision = 0
+            for expButton in self.expButtonList:
+                expButton.config(state=NORMAL)
             inputNum.configure(state=NORMAL)
             inputNum.delete("1.0", END)
             inputNum.insert(END, "0", "tag-right")
-            self.printResult = 1
             inputNum.configure(state="disabled")
-        elif event.keycode == 8: #Backspace (지우기)
+        elif event.keycode == 8 and not self.isZeroDivision: #Backspace (지우기)
             inputNum.configure(state=NORMAL)
             inputNum.delete("%s-1c" % INSERT, INSERT)
             inputNum.configure(state="disabled")
-        else :
+        else:
             #연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1:
                 if event.char.isdigit():
+                    self.isZeroDivision = 0
                     inputNum.configure(state=NORMAL)
                     inputNum.delete("1.0", END)
                     inputNum.configure(state="disabled")
                     self.printResult = 0
-                else :
-                    inputNum.configure(state=NORMAL)
-                    pastResult = inputNum.get("2.2", "%s" % INSERT)
-                    inputNum.delete("1.0", END)
-                    inputNum.insert("1.0", pastResult, "tag-right")
-                    inputNum.configure(state="disabled")
-            self.printResult = 0
-            inputNum.configure(state=NORMAL)
-            inputNum.insert(INSERT, event.char, "tag-right")
-            inputNum.configure(state="disabled")
-            entryString = str(inputNum.get("1.0", INSERT))
-            if len(entryString) > 1:
-                # 수식의 맨 앞에 불필요한 0이 오지 않도록 자동 제거
-                if entryString[0] == "0":
-                    #소수점 앞 0은 제거하지 않음
-                    if entryString[1] == ".":
-                        pass
-                    else:
-                        inputNum.configure(state=NORMAL)
-                        inputNum.delete("1.0", "1.1")
+                else:
+                    if self.isZeroDivision:
                         inputNum.configure(state="disabled")
-                # 식을 완성하지 않고 다른 연산자를 입력 시 자동 변환
-                if not entryString[-1].isdigit():
-                    if not entryString[-2].isdigit():
-                        if entryString[-2] == ")" or entryString[-2] == "(":
+                    else:
+                        self.printResult = 0
+                        inputNum.configure(state=NORMAL)
+                        pastResult = inputNum.get("2.2", "%s" % INSERT)
+                        inputNum.delete("1.0", END)
+                        inputNum.insert("1.0", pastResult, "tag-right")
+                        inputNum.configure(state="disabled")
+            if not self.isZeroDivision:
+                self.printResult = 0
+                inputNum.configure(state=NORMAL)
+                for expButton in self.expButtonList:
+                    expButton.config(state=NORMAL)
+                inputNum.insert(INSERT, event.char, "tag-right")
+                inputNum.configure(state="disabled")
+                entryString = str(inputNum.get("1.0", INSERT))
+                if len(entryString) > 1:
+                    # 수식의 맨 앞에 불필요한 0이 오지 않도록 자동 제거
+                    if entryString[0] == "0":
+                        #소수점 앞 0은 제거하지 않음
+                        if entryString[1] == ".":
                             pass
                         else:
                             inputNum.configure(state=NORMAL)
-                            inputNum.delete("%s-2c" % INSERT, INSERT)
-                            inputNum.insert(INSERT, event.char, "tag-right")
+                            inputNum.delete("1.0", "1.1")
                             inputNum.configure(state="disabled")
+                    # 식을 완성하지 않고 다른 연산자를 입력 시 자동 변환
+                    if not self.isZeroDivision:
+                        if not entryString[-1].isdigit():
+                            if not entryString[-2].isdigit():
+                                if entryString[-2] == ")" or entryString[-2] == "(":
+                                    pass
+                                else:
+                                    inputNum.configure(state=NORMAL)
+                                    inputNum.delete("%s-2c" % INSERT, INSERT)
+                                    inputNum.insert(INSERT, event.char, "tag-right")
+                                    inputNum.configure(state="disabled")
     
     #버튼 클릭 이벤트
     def pressButton(self, value):
@@ -117,14 +157,21 @@ class Calculator:
                 inputNum.configure(state="disabled")
                 self.printResult = 1
             except ZeroDivisionError:
+                self.isZeroDivision = 1
+                for expButton in self.expButtonList:
+                    expButton.config(state="disabled")
                 inputNum.configure(state=NORMAL)
                 inputNum.insert(END, "\n", "tag-right")
                 inputNum.insert("2.0", "0으로 나눌 수 없습니다.", "tag-right")
                 inputNum.configure(state="disabled")
                 self.printResult = 1
-        elif value == "종료" :
+        elif value == "종료":
             window.destroy()
-        elif value == "C" :
+        elif value == "AC":
+            self.printResult = 1
+            self.isZeroDivision = 0
+            for expButton in self.expButtonList:
+                expButton.config(state=NORMAL)
             inputNum.configure(state=NORMAL)
             inputNum.delete("1.0", END)
             inputNum.insert(END, "0", "tag-right")
@@ -137,22 +184,6 @@ class Calculator:
                 inputNum.configure(state="disabled")
             else:
                 pass
-        #계산기 변경 버튼
-        elif value == "공학":
-            widget_list = all_children(window)
-            for item in widget_list:
-                item.grid_forget()
-            self.setScreenValue(value)
-        elif value == "산술":
-            widget_list = all_children(window)
-            for item in widget_list:
-                item.grid_forget()
-            self.setScreenValue(value)
-        elif value == "컴퓨터":
-            widget_list = all_children(window)
-            for item in widget_list:
-                item.grid_forget()
-            self.setScreenValue(value)
         #연산 버튼
         elif value == "%":
             #연산 결과를 활용해 연계 계산을 위한 조건
@@ -353,6 +384,9 @@ class Calculator:
                 inputNum.configure(state="disabled")
                 self.printResult = 1
             except ZeroDivisionError:
+                self.isZeroDivision = 1
+                for expButton in self.expButtonList:
+                    expButton.config(state="disabled")
                 inputNum.configure(state=NORMAL)
                 inputNum.insert("1.0", "1/", "tag-right")
                 inputNum.insert(END, "\n", "tag-right")
@@ -443,7 +477,7 @@ class Calculator:
             inputNum.configure(state=NORMAL)
             inputNum.insert(INSERT, " AND ", "tag-right")
             inputNum.configure(state="disabled")
-        elif value == "LShift":
+        elif value == "Lsh":
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
@@ -455,8 +489,9 @@ class Calculator:
             inputNum.configure(state=NORMAL)
             inputNum.insert(INSERT, " Lsh ", "tag-right")
             inputNum.configure(state="disabled")
-        elif value == "RShift":
+        elif value == "Rsh":
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
+                print("enter")
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
                 print(pastResult)
@@ -471,6 +506,7 @@ class Calculator:
             #초기 화면 숫자 0표기와 다른 숫자 입력시 0을 지우기 위한 로직
             if self.printResult == 1:
                 if value.isdigit():
+                    self.isZeroDivision = 0
                     inputNum.configure(state=NORMAL)
                     inputNum.delete("1.0", END)
                     inputNum.configure(state="disabled")
@@ -486,93 +522,198 @@ class Calculator:
                         inputNum.insert("1.0", pastResult, "tag-right")
                         inputNum.configure(state="disabled")
             #일반적인 입력
-            self.printResult = 0
-            inputNum.configure(state=NORMAL)
-            inputNum.insert(INSERT, value, "tag-right")
-            inputNum.configure(state="disabled")
-            entryString = inputNum.get("1.0", INSERT)
-            if len(entryString) > 1:
-                # 수식의 맨 앞에 불필요한 0이 오지 않도록 자동 제거
-                if entryString[0] == "0":
-                    #소수점 앞 0은 제거하지 않음
-                    if entryString[1] == ".":
-                        pass
-                    else:
-                        inputNum.configure(state=NORMAL)
-                        inputNum.delete("1.0", "1.1")
-                        inputNum.configure(state="disabled")
-                # 식을 완성하지 않고 다른 연산자를 입력 시 자동 변환
-                if not entryString[-1].isdigit():
-                    if not entryString[-2].isdigit():
-                        if entryString[-2] == ")" or entryString[-2] == "(":
+            if not self.isZeroDivision:
+                self.printResult = 0
+                inputNum.configure(state=NORMAL)
+                inputNum.insert(INSERT, value, "tag-right")
+                for expButton in self.expButtonList:
+                    expButton.config(state=NORMAL)
+                inputNum.configure(state="disabled")
+                entryString = inputNum.get("1.0", INSERT)
+                if len(entryString) > 1:
+                    # 수식의 맨 앞에 불필요한 0이 오지 않도록 자동 제거
+                    if entryString[0] == "0":
+                        #소수점 앞 0은 제거하지 않음
+                        if entryString[1] == ".":
                             pass
                         else:
                             inputNum.configure(state=NORMAL)
-                            inputNum.delete("%s-2c" % INSERT, INSERT)
-                            inputNum.insert(INSERT, value, "tag-right")
+                            inputNum.delete("1.0", "1.1")
                             inputNum.configure(state="disabled")
+                    # 식을 완성하지 않고 다른 연산자를 입력 시 자동 변환
+                    if not entryString[-1].isdigit():
+                        if not entryString[-2].isdigit():
+                            if entryString[-2] == ")" or entryString[-2] == "(":
+                                pass
+                            else:
+                                inputNum.configure(state=NORMAL)
+                                inputNum.delete("%s-2c" % INSERT, INSERT)
+                                inputNum.insert(INSERT, value, "tag-right")
+                                inputNum.configure(state="disabled")
 
-    def printWindow(self, screenValue):
-        #버튼 그리드 변수
+    def printNormalButtons(self):
+        widget_list = all_children(window)
+        for item in widget_list:
+            item.grid_forget()
+        # 버튼 그리드 변수
         rowIndex = 1
         colIndex = 0
-        
-        #버튼 텍스트 변수
-        if screenValue == "산술":
-            buttonText = [
-                '%', '√x', 'x²', '1/x','←',
-                '7', '8', '9', '/', 'C',
-                '4', '5', '6', '*', '공학',
-                '1', '2', '3', '-', '컴퓨터',
-                '.', '0', '=', '+', '종료' ]
-        elif screenValue == "공학":
-            buttonText = [
-                'sin', 'cos', 'tan', 'π','←',
-                'x²', 'xʸ', '√x', '10ˣ', 'n!',
-                '7', '8', '9', '/', 'C',
-                '4', '5', '6', '*', '산술',
-                '1', '2', '3', '-', '컴퓨터',
-                '.', '0', '=', '+', '종료' ]
-        elif screenValue == "컴퓨터":
-            buttonText = [
-                'Mod', 'OR', 'XOR', 'NOT', 'AND',
-                'LShift', 'RShift', '(', ')', '←',
-                '7', '8', '9', '/', 'C',
-                '4', '5', '6', '*', '산술',
-                '1', '2', '3', '-', '공학',
-                '.', '0', '=', '+', '종료',
-                ]
-        
-        
-        #결과 표시창
+
+        # 버튼 텍스트 변수
+        buttonText = [
+            '%', '√x', 'x²', '1/x',
+            'CE', 'AC', '←', '/',
+            '7', '8', '9', '*',
+            '4', '5', '6', '-',
+            '1', '2', '3', '+',
+            '.', '0', '=', '±'
+        ]
+
+        # 결과 표시창
         global inputNum
-        inputNum = Text(window, width=30, height=3, relief="groove",\
+        inputNum = Text(window, width=30, height=3, relief="groove", \
                         font=font, background="gray95", pady=5, padx=10)
         inputNum.tag_configure('tag-right', justify="right")
-        inputNum.grid(row=0, column=0, columnspan=5, pady=5,ipady=20, ipadx=5)
+        inputNum.grid(row=0, column=0, columnspan=5, pady=5, ipady=20, ipadx=5)
         inputNum.insert(END, "0", "tag-right")
         inputNum.configure(state="disabled")
         self.printResult = 1
+
         buttonList = []
         index = 0
-        #버튼 표시
-        for button in buttonText :
-            def click(t = button):
+        # 버튼 표시
+        for button in buttonText:
+            def click(t=button):
                 self.pressButton(t)
-            buttonObject = Button(window, text=button, width=6, height=2,\
-                                  relief="groove", command=click, font=font, padx=0, pady=0)
-            buttonObject.grid(row=rowIndex, column=colIndex)
+
+            buttonObject = Button(window, text=button, width=8, height=2, \
+                                    relief="groove", command=click, font=font, padx=0, pady=0)
+            buttonObject.grid(row=rowIndex, column=colIndex, sticky="nesw")
             buttonList.append(buttonObject)
-            if screenValue == "컴퓨터" and button == ".":
-                pointButton = buttonList[index]
-                pointButton.configure(state="disabled")
+            if not button.isdigit():
+                if button == "AC":
+                    pass
+                else:
+                    self.expButtonList.append(buttonObject)
             index += 1
             colIndex += 1
-            if colIndex > 4 :
+            if colIndex > 3:
                 rowIndex += 1
                 colIndex = 0
-        print(buttonList)
         window.bind("<Key>", self.pressButtonKey)
+
+    def printScientificButtons(self):
+        widget_list = all_children(window)
+        for item in widget_list:
+            item.grid_forget()
+        rowIndex = 1
+        colIndex = 0
+        buttonText = [
+            'sin', 'cos', 'tan', 'π', '←',
+            'x²', 'xʸ', '√x', '10ˣ', 'n!',
+            '7', '8', '9', '/', 'log',
+            '4', '5', '6', '*', 'AC',
+            '1', '2', '3', '-', 'CE',
+            '.', '0', '=', '+', '±',
+        ]
+
+        # 결과 표시창
+        global inputNum
+        inputNum = Text(window, width=30, height=3, relief="groove", \
+                        font=font, background="gray95", pady=5, padx=10)
+        inputNum.tag_configure('tag-right', justify="right")
+        inputNum.grid(row=0, column=0, columnspan=5, pady=5, ipady=20, ipadx=5)
+        inputNum.insert(END, "0", "tag-right")
+        inputNum.configure(state="disabled")
+        self.printResult = 1
+
+        buttonList = []
+        index = 0
+        # 버튼 표시
+        for button in buttonText:
+            def click(t=button):
+                self.pressButton(t)
+
+            buttonObject = Button(window, text=button, width=6, height=2, \
+                                    relief="groove", command=click, font=font, padx=0, pady=0)
+            buttonObject.grid(row=rowIndex, column=colIndex)
+            buttonList.append(buttonObject)
+            if not button.isdigit():
+                if button == "AC":
+                    pass
+                else:
+                    self.expButtonList.append(buttonObject)
+            index += 1
+            colIndex += 1
+            if colIndex > 4:
+                rowIndex += 1
+                colIndex = 0
+        window.bind("<Key>", self.pressButtonKey)
+
+    def printComputerButtons(self):
+        font = Font(family="맑은 고딕", size=15)
+        widget_list = all_children(window)
+        for item in widget_list:
+            item.grid_forget()
+        rowIndex = 1
+        colIndex = 0
+
+        buttonText = [
+            'NAND', 'NOR', 'OR', 'XOR', 'NOT', 'AND',
+            'Lsh', 'Rsh', 'Mod', 'AC', '←', '/',
+            'A', 'B', '7', '8', '9', '*',
+            'C', 'D', '4', '5', '6', '-',
+            'E', 'F', '1', '2', '3', '+',
+            '(', ')', '±', '0', '.', '='
+        ]
+
+        # 결과 표시창
+        global inputNum
+        inputNum = Text(window, width=30, height=3, relief="groove", \
+                        font=font, background="gray95", pady=5, padx=10)
+        inputNum.tag_configure('tag-right', justify="right")
+        inputNum.grid(row=0, column=0, columnspan=6, pady=5, ipady=20, ipadx=5)
+        inputNum.insert(END, "0", "tag-right")
+        inputNum.configure(state="disabled")
+        self.printResult = 1
+
+        buttonList = []
+        index = 0
+        # 버튼 표시
+        for button in buttonText:
+            def click(t=button):
+                self.pressButton(t)
+
+            buttonObject = Button(window, text=button, width=5, height=2,\
+                                  relief="groove", command=click, font=font, padx=0, pady=0)
+            buttonObject.grid(row=rowIndex, column=colIndex, sticky="nesw")
+            buttonList.append(buttonObject)
+            # 컴퓨터 계산기 소수점 사용 금지
+            if buttonObject == ".":
+                pointButton = buttonList[index]
+                pointButton.configure(state="disabled")
+            if not button.isdigit():
+                if button == "AC":
+                    pass
+                else:
+                    self.expButtonList.append(buttonObject)
+            index += 1
+            colIndex += 1
+            if colIndex > 5:
+                rowIndex += 1
+                colIndex = 0
+
+    def printWindow(self, screenValue):
+        # 메뉴 변수
+        menubar = Menu(window)
+        calcMenu = Menu(menubar, tearoff=0)
+        calcMenu.add_command(label="산술", command=self.printNormalButtons)
+        calcMenu.add_command(label="공학", command=self.printScientificButtons)
+        calcMenu.add_command(label="프로그래머", command=self.printComputerButtons)
+        menubar.add_cascade(label="계산기", menu=calcMenu)
+        window.config(menu=menubar)
+        self.printNormalButtons()
+
         window.mainloop()
 
 if __name__ == "__main__":

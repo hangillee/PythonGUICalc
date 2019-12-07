@@ -7,37 +7,39 @@ window = Tk()
 window.title("종합 계산기")
 window.resizable(0, 0)
 
-#폰트 변경을 위한 폰트 객체
+# 폰트 변경을 위한 폰트 객체
 font = Font(family="맑은 고딕", size=15)
 
-#모든 위젯 리스트에 저장 (새 화면 출력을 위함)
-def all_children(window):
-    widget_list = window.winfo_children()
-
-    for item in widget_list :
+# 모든 위젯 리스트에 저장 (새 화면 출력을 위함)
+def allChildren(window):
+    widgetList = window.winfo_children()
+    for item in widgetList:
         if item.winfo_children():
-            widget_list.extend(item.winfo_children())
-        return widget_list
+            widgetList.extend(item.winfo_children())
+        return widgetList
 
 class Calculator:
-    #결과 출력 여부 체크
+    # 결과 출력 여부 체크
     printResult = 0
 
-    #ZeroDivision 예외 처리를 위한 변수
+    # ZeroDivision 예외 처리를 위한 변수
     expButtonList = []
     isZeroDivision = 0
 
-    #생성자
+    # 양수 음수 전환을 위한 변수
+    isPlusMinus = 0
+
+    # 생성자
     def __init__(self, screen):
         self.setScreenValue(screen)
 
-    #화면 구성 변수 설정 (산술, 공학, 단위 등)
+    # 화면 구성 변수 설정 (산술, 공학, 단위 등)
     def setScreenValue(self, buttonValue):
         self.printWindow(buttonValue)
 
-    #버튼 키보드 입력 이벤트
+    # 버튼 키보드 입력 이벤트
     def pressButtonKey(self, event):
-        if event.keycode == 13 or event.char == "=": #Return (결과 반환)
+        if event.keycode == 13 or event.char == "=": # Return (결과 반환)
             # 버튼 상에서의 연산자를 eval 가능한 연산자로 치환
             expression = inputNum.get("1.0", END)
             expression = expression.strip("\n")
@@ -59,6 +61,7 @@ class Calculator:
                 expression = expression.replace("Lsh", "<<")
             if expression.find("Rsh"):
                 expression = expression.replace("Rsh", ">>")
+            # ZeroDivisionError 예외처리
             try:
                 result = eval(expression)
                 strResult = str(result)
@@ -77,7 +80,8 @@ class Calculator:
                 inputNum.insert("2.0", "0으로 나눌 수 없습니다.", "tag-right")
                 inputNum.configure(state="disabled")
                 self.printResult = 1
-        elif event.keycode == 27 : #Escape (결과창 초기화)
+        # 전체 삭제
+        elif event.keycode == 27:
             self.printResult = 1
             self.isZeroDivision = 0
             for expButton in self.expButtonList:
@@ -86,7 +90,14 @@ class Calculator:
             inputNum.delete("1.0", END)
             inputNum.insert(END, "0", "tag-right")
             inputNum.configure(state="disabled")
-        elif event.keycode == 8 and not self.isZeroDivision: #Backspace (지우기)
+        # Backspace 기능
+        elif event.keycode == 8 and not self.isZeroDivision:
+            if len(inputNum.get("1.0", END)) == 2:
+                inputNum.configure(state=NORMAL)
+                inputNum.insert("1.0", "0", "tag-right")
+                inputNum.configure(state="disabled")
+            else:
+                pass
             if not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 inputNum.delete("%s-1c" % INSERT, INSERT)
@@ -94,7 +105,7 @@ class Calculator:
             else:
                 pass
         else:
-            #연산 결과를 활용해 연계 계산을 위한 조건
+            # 초기 화면 0표기와 연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1:
                 if event.char.isdigit():
                     self.isZeroDivision = 0
@@ -106,25 +117,40 @@ class Calculator:
                     if self.isZeroDivision:
                         inputNum.configure(state="disabled")
                     else:
-                        self.printResult = 0
-                        inputNum.configure(state=NORMAL)
-                        pastResult = inputNum.get("2.2", "%s" % INSERT)
-                        inputNum.delete("1.0", END)
-                        inputNum.insert("1.0", pastResult, "tag-right")
-                        inputNum.configure(state="disabled")
+                        # 초기 화면 숫자 0으로 연산 하기 위한 로직
+                        if inputNum.get("1.0", END) == "0\n":
+                            pass
+                        else:
+                            inputNum.configure(state=NORMAL)
+                            pastResult = inputNum.get("2.2", "%s" % INSERT)
+                            inputNum.delete("1.0", END)
+                            inputNum.insert("1.0", pastResult, "tag-right")
+                            inputNum.configure(state="disabled")
+            # ZeroDivisionError가 일어나지 않았을 때만
             if not self.isZeroDivision:
                 self.printResult = 0
                 inputNum.configure(state=NORMAL)
+                inputNum.insert(INSERT, event.char, "tag-right")
+                entryString = inputNum.get("1.0", INSERT)
+                # 괄호 갯수 입력 제한
+                if event.char == ")":
+                    openBracket = entryString.count("(")
+                    closeBracket = entryString.count(")")
+                    if openBracket < closeBracket:
+                        inputNum.delete("%s-1c" % INSERT, INSERT)
                 for expButton in self.expButtonList:
                     expButton.config(state=NORMAL)
-                inputNum.insert(INSERT, event.char, "tag-right")
                 inputNum.configure(state="disabled")
-                entryString = str(inputNum.get("1.0", INSERT))
                 if len(entryString) > 1:
                     # 수식의 맨 앞에 불필요한 0이 오지 않도록 자동 제거
                     if entryString[0] == "0":
-                        #소수점 앞 0은 제거하지 않음
-                        if entryString[1] == ".":
+                        # 연산자 앞 0은 제거하지 않음
+                        if not entryString[1].isdigit():
+                            # 괄호 입력 시에는 제거
+                            if entryString[1] == "(":
+                                inputNum.configure(state=NORMAL)
+                                inputNum.delete("1.0", "1.1")
+                                inputNum.configure(state="disabled")
                             pass
                         else:
                             inputNum.configure(state=NORMAL)
@@ -134,18 +160,28 @@ class Calculator:
                     if not self.isZeroDivision:
                         if not entryString[-1].isdigit():
                             if not entryString[-2].isdigit():
-                                if entryString[-2] == ")" or entryString[-2] == "(":
+                                if entryString[-2] == ")" or entryString[-2] == "(" or entryString[-1] == "(":
                                     pass
                                 else:
                                     inputNum.configure(state=NORMAL)
                                     inputNum.delete("%s-2c" % INSERT, INSERT)
                                     inputNum.insert(INSERT, event.char, "tag-right")
                                     inputNum.configure(state="disabled")
+                    # 연산자 뒤에 0이 나와 연산할 수 없는 경우 (소수점 제외)
+                    if entryString[-1].isdigit():
+                        print("enter")
+                        if entryString[-2] == "0":
+                            if not entryString[-3].isdigit() and not entryString[-3] == ".":
+                                entryString = entryString[:-2] + entryString[-1:]
+                                inputNum.configure(state=NORMAL)
+                                inputNum.delete("1.0", END)
+                                inputNum.insert(END, entryString, "tag-right")
+                                inputNum.configure(state="disabled")
     
-    #버튼 클릭 이벤트
+    # 버튼 클릭 이벤트
     def pressButton(self, value):
         if value == "=":
-            #버튼 상에서의 연산자를 eval 가능한 연산자로 치환
+            # 버튼 상에서의 연산자를 eval 가능한 연산자로 치환
             expression = inputNum.get("1.0", END)
             expression = expression.strip("\n")
             if expression.find("Mod"):
@@ -166,6 +202,7 @@ class Calculator:
                 expression = expression.replace("Lsh", "<<")
             if expression.find("Rsh"):
                 expression = expression.replace("Rsh", ">>")
+            # ZeroDivisionError 예외처리
             try:
                 result = eval(expression)
                 strResult = str(result)
@@ -184,9 +221,11 @@ class Calculator:
                 inputNum.insert("2.0", "0으로 나눌 수 없습니다.", "tag-right")
                 inputNum.configure(state="disabled")
                 self.printResult = 1
+        # 전체 삭제
         elif value == "AC":
             self.printResult = 1
             self.isZeroDivision = 0
+            self.isPlusMinus = 0
             for expButton in self.expButtonList:
                 expButton.config(state=NORMAL)
             inputNum.configure(state=NORMAL)
@@ -194,34 +233,118 @@ class Calculator:
             inputNum.insert(END, "0", "tag-right")
             self.printResult = 1
             inputNum.configure(state="disabled")
+        # 현재 입력했던 것 삭제 (숫자, 연산자 단위)
+        elif value == "CE":
+            # 현재 수식 저장
+            entryString = inputNum.get("1.0", INSERT)
+            # 현재 수식이 0밖에 없을 경우, 즉 초기화면과 같을 경우 AC와 같은 동작
+            if entryString == "0" or self.printResult == 1:
+                print(len(entryString))
+                self.printResult = 1
+                self.isZeroDivision = 0
+                self.isPlusMinus = 0
+                for expButton in self.expButtonList:
+                    expButton.config(state=NORMAL)
+                inputNum.configure(state=NORMAL)
+                inputNum.delete("1.0", END)
+                inputNum.insert(END, "0", "tag-right")
+                self.printResult = 1
+                inputNum.configure(state="disabled")
+            # 0외의 수식이 존재할 경우, 즉 길이가 0보다 클 경우
+            elif len(entryString) > 0:
+                # 숫자일 경우
+                if entryString[-1].isdigit():
+                    while entryString[len(entryString)-1].isdigit():
+                        entryString = entryString[0:len(entryString)-1]
+                        inputNum.configure(state=NORMAL)
+                        inputNum.delete("1.0", END)
+                        inputNum.insert(END, entryString, "tag-right")
+                        inputNum.configure(state="disabled")
+                        if len(entryString)-1 < 0:
+                            inputNum.configure(state=NORMAL)
+                            inputNum.delete("1.0", END)
+                            inputNum.insert(END, "0", "tag-right")
+                            self.printResult = 1
+                            inputNum.configure(state="disabled")
+                            break
+                # 연산자일 경우
+                else:
+                    while not entryString[len(entryString)-1].isdigit():
+                        entryString = entryString[0:len(entryString) - 1]
+                        inputNum.configure(state=NORMAL)
+                        inputNum.delete("1.0", END)
+                        inputNum.insert(END, entryString, "tag-right")
+                        inputNum.configure(state="disabled")
+                        if len(entryString)-1 < 0:
+                            inputNum.configure(state=NORMAL)
+                            inputNum.delete("1.0", END)
+                            inputNum.insert(END, "0", "tag-right")
+                            self.printResult = 1
+                            inputNum.configure(state="disabled")
+                            break
+        # Backspace 기능
         elif value == "←":
+            if len(inputNum.get("1.0", END)) == 2:
+                inputNum.configure(state=NORMAL)
+                inputNum.insert("1.0", "0", "tag-right")
+                inputNum.configure(state="disabled")
+            else:
+                pass
             if not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 inputNum.delete("%s-1c" % INSERT, INSERT)
                 inputNum.configure(state="disabled")
             else:
                 pass
-        #연산 버튼
+        # 양수 음수 전환
+        elif value == "±":
+            entryString = inputNum.get("1.0", INSERT)
+            if len(entryString) > 0:
+                index = len(entryString) - 1
+                # 숫자일 경우
+                if entryString[-1].isdigit() and not self.printResult == 1:
+                    while entryString[index].isdigit():
+                        enterNumber = entryString[index:]
+                        index -= 1
+                        if index < 0:
+                            index += 1
+                            break
+                    if self.isPlusMinus == 0:
+                        inputNum.configure(state=NORMAL)
+                        inputNum.delete("1.0", END)
+                        print(index)
+                        if entryString == enterNumber:
+                            inputNum.insert(END, "-" + enterNumber, "tag-right")
+                        else:
+                            inputNum.insert(END, entryString[0:index+1] + "-" + enterNumber, "tag-right")
+                        print(entryString[0:index+1])
+                        inputNum.configure(state="disabled")
+                        self.isPlusMinus = 1
+                    else:
+                        inputNum.configure(state=NORMAL)
+                        inputNum.delete("1.0", END)
+                        inputNum.insert(END, entryString[0:index] + enterNumber, "tag-right")
+                        inputNum.configure(state="disabled")
+                        self.isPlusMinus = 0
+        # 연산 버튼
         elif value == "%":
-            #연산 결과를 활용해 연계 계산을 위한 조건
+            # 연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
-            print(inputNum.get("1.0", END))
             number = float(inputNum.get("1.0", END))
             result = str(number/100.0)
             inputNum.configure(state=NORMAL)
-            #연산 기호를 포함한 출력
+            # 연산 기호를 포함한 출력
             inputNum.insert(END, value + "\n", "tag-right")
             inputNum.insert("2.0", "= " + result, "tag-right")
             inputNum.configure(state="disabled")
             self.printResult = 1
         elif value == "sin":
-            #연산 결과를 활용해 연계 계산을 위한 조건
+            # 연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
@@ -233,14 +356,14 @@ class Calculator:
             radian = radians(number)
             result = str(round(sin(radian), 4))
             inputNum.configure(state=NORMAL)
-            #연산 기호를 포함한 출력
+            # 연산 기호를 포함한 출력
             inputNum.delete("1.0", END)
             inputNum.insert("1.0", value+"("+str(number)+")"+"\n", "tag-right")
             inputNum.insert("2.0", "= "+result, "tag-right")
             inputNum.configure(state="disabled")
             self.printResult = 1
         elif value == "cos":
-            #연산 결과를 활용해 연계 계산을 위한 조건
+            # 연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
@@ -252,14 +375,14 @@ class Calculator:
             radian = radians(number)
             result = str(round(cos(radian), 4))
             inputNum.configure(state=NORMAL)
-            #연산 기호를 포함한 출력
+            # 연산 기호를 포함한 출력
             inputNum.delete("1.0", END)
             inputNum.insert("1.0", value+"("+str(number)+")"+"\n", "tag-right")
             inputNum.insert("2.0", "= "+result, "tag-right")
             inputNum.configure(state="disabled")
             self.printResult = 1
         elif value == "tan":
-            #연산 결과를 활용해 연계 계산을 위한 조건
+            # 연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
@@ -271,7 +394,7 @@ class Calculator:
             radian = radians(number)
             result = str(round(tan(radian), 4))
             inputNum.configure(state=NORMAL)
-            #연산 기호를 포함한 출력
+            # 연산 기호를 포함한 출력
             inputNum.delete("1.0", END)
             inputNum.insert("1.0", value+"("+str(number)+")"+"\n", "tag-right")
             inputNum.insert("2.0", "= "+result, "tag-right")
@@ -288,14 +411,14 @@ class Calculator:
             number = float(inputNum.get("1.0", END))
             result = str(pi * number)
             inputNum.configure(state=NORMAL)
-            #연산 기호를 포함한 출력
+            # 연산 기호를 포함한 출력
             inputNum.delete("1.0", END)
             inputNum.insert("1.0", str(number)+ "π"+"\n", "tag-right")
             inputNum.insert("2.0", "= "+result, "tag-right")
             inputNum.configure(state="disabled")
             self.printResult = 1
         elif value == "x²":
-            #연산 결과를 활용해 연계 계산을 위한 조건
+            # 연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
@@ -306,13 +429,13 @@ class Calculator:
             number = float(inputNum.get("1.0", END))
             result = str(pow(number, 2))
             inputNum.configure(state=NORMAL)
-            #연산 기호를 포함한 출력
+            # 연산 기호를 포함한 출력
             inputNum.insert(END, "²" + "\n", "tag-right")
             inputNum.insert("2.0", "= " + result, "tag-right")
             inputNum.configure(state="disabled")
             self.printResult = 1
         elif value == "xʸ":
-            #연산 결과를 활용해 연계 계산을 위한 조건
+            # 연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
@@ -325,7 +448,7 @@ class Calculator:
             inputNum.insert(INSERT, "**", "tag-right")
             inputNum.configure(state="disabled")
         elif value == "10ˣ":
-            #연산 결과를 활용해 연계 계산을 위한 조건
+            # 연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
@@ -340,7 +463,7 @@ class Calculator:
             else:
                 result = str(10 ** number)
             inputNum.configure(state=NORMAL)
-            #연산 기호를 포함한 출력
+            # 연산 기호를 포함한 출력
             inputNum.delete("1.0", END)
             inputNum.insert("1.0","10^"+numberStr, "tag-right")
             inputNum.insert(END, "\n", "tag-right")
@@ -348,7 +471,7 @@ class Calculator:
             inputNum.configure(state="disabled")
             self.printResult = 1
         elif value == "√x":
-            #연산 결과를 활용해 연계 계산을 위한 조건
+            # 연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
@@ -359,14 +482,14 @@ class Calculator:
             number = float(inputNum.get("1.0", END))
             result = str(sqrt(number))
             inputNum.configure(state=NORMAL)
-            #연산 기호를 포함한 출력
+            # 연산 기호를 포함한 출력
             inputNum.insert("1.0","√", "tag-right")
             inputNum.insert(END, "\n", "tag-right")
             inputNum.insert("2.0", "= " + result, "tag-right")
             inputNum.configure(state="disabled")
             self.printResult = 1
         elif value == "x²":
-            #연산 결과를 활용해 연계 계산을 위한 조건
+            # 연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
@@ -377,13 +500,13 @@ class Calculator:
             number = float(inputNum.get("1.0", END))
             result = str(pow(number, 2))
             inputNum.configure(state=NORMAL)
-            #연산 기호를 포함한 출력
+            # 연산 기호를 포함한 출력
             inputNum.insert(END, "²" + "\n", "tag-right")
             inputNum.insert("2.0", "= " + result, "tag-right")
             inputNum.configure(state="disabled")
             self.printResult = 1
         elif value == "1/x":
-            #연산 결과를 활용해 연계 계산을 위한 조건
+            # 연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
@@ -410,9 +533,9 @@ class Calculator:
                 inputNum.insert("2.0", "0으로 나눌 수 없습니다.", "tag-right")
                 inputNum.configure(state="disabled")
                 self.printResult = 1
-        #Factorial 연산
+        # Factorial 연산
         elif value == "n!":
-            #연산 결과를 활용해 연계 계산을 위한 조건
+            # 연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
@@ -427,7 +550,7 @@ class Calculator:
             inputNum.insert("2.0", "= " + str(result), "tag-right")
             inputNum.configure(state="disabled")
             self.printResult = 1
-        #Log 연산
+        # Log 연산
         elif value == "log":
             # 연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
@@ -445,7 +568,7 @@ class Calculator:
             inputNum.insert("2.0", "= " + str(result), "tag-right")
             inputNum.configure(state="disabled")
             self.printResult = 1
-        #Mod 연산
+        # Mod 연산
         elif value == "Mod":
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
@@ -561,8 +684,9 @@ class Calculator:
             inputNum.configure(state=NORMAL)
             inputNum.insert(INSERT, " Rsh ", "tag-right")
             inputNum.configure(state="disabled")
-        else :
-            #초기 화면 숫자 0표기와 다른 숫자 입력시 0을 지우기 위한 로직
+        # 위의 특수 입력을 제외한 입력 처리
+        else:
+            # 초기 화면 0표기와 연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1:
                 if value.isdigit():
                     self.isZeroDivision = 0
@@ -570,30 +694,46 @@ class Calculator:
                     inputNum.delete("1.0", END)
                     inputNum.configure(state="disabled")
                     self.printResult = 0
-                else :
-                    #초기 화면 숫자 0으로 연산 하기 위한 조건
-                    if inputNum.get("1.0", END) == "0\n":
-                        pass
-                    else:
-                        inputNum.configure(state=NORMAL)
-                        pastResult = inputNum.get("2.2", "%s" % INSERT)
-                        inputNum.delete("1.0", END)
-                        inputNum.insert("1.0", pastResult, "tag-right")
+                else:
+                    # 0으로 나눴을 때는 연계 계산을 하지않아야 함.
+                    if self.isZeroDivision:
                         inputNum.configure(state="disabled")
-            #일반적인 입력
+                    else:
+                        # 초기 화면 숫자 0으로 연산 하기 위한 로직
+                        if inputNum.get("1.0", END) == "0\n":
+                            pass
+                        else:
+                            inputNum.configure(state=NORMAL)
+                            pastResult = inputNum.get("2.2", "%s" % INSERT)
+                            inputNum.delete("1.0", END)
+                            inputNum.insert("1.0", pastResult, "tag-right")
+                            inputNum.configure(state="disabled")
+            # ZeroDivisionError가 일어나지 않았을 때만
             if not self.isZeroDivision:
                 self.printResult = 0
                 inputNum.configure(state=NORMAL)
                 inputNum.insert(INSERT, value, "tag-right")
+                entryString = inputNum.get("1.0", INSERT)
+                print(entryString)
+                # 괄호 갯수 입력 제한
+                if value == ")":
+                    openBracket = entryString.count("(")
+                    closeBracket = entryString.count(")")
+                    if openBracket < closeBracket:
+                        inputNum.delete("%s-1c" % INSERT, INSERT)
                 for expButton in self.expButtonList:
                     expButton.config(state=NORMAL)
                 inputNum.configure(state="disabled")
-                entryString = inputNum.get("1.0", INSERT)
                 if len(entryString) > 1:
                     # 수식의 맨 앞에 불필요한 0이 오지 않도록 자동 제거
                     if entryString[0] == "0":
-                        #소수점 앞 0은 제거하지 않음
-                        if entryString[1].isdigit():
+                        # 연산자 앞 0은 제거하지 않음
+                        if not entryString[1].isdigit():
+                            # 괄호 입력 시에는 제거
+                            if entryString[1] == "(":
+                                inputNum.configure(state=NORMAL)
+                                inputNum.delete("1.0", "1.1")
+                                inputNum.configure(state="disabled")
                             pass
                         else:
                             inputNum.configure(state=NORMAL)
@@ -602,17 +742,27 @@ class Calculator:
                     # 식을 완성하지 않고 다른 연산자를 입력 시 자동 변환
                     if not entryString[-1].isdigit():
                         if not entryString[-2].isdigit():
-                            if entryString[-2] == ")" or entryString[-2] == "(":
+                            if entryString[-2] == ")" or entryString[-2] == "(" or entryString[-1] == "(":
                                 pass
                             else:
                                 inputNum.configure(state=NORMAL)
                                 inputNum.delete("%s-2c" % INSERT, INSERT)
                                 inputNum.insert(INSERT, value, "tag-right")
                                 inputNum.configure(state="disabled")
-
+                    # 연산자 뒤의 수가 0이 먼저 나와 연산할 수 없는 경우 (소수점 제외)
+                    if entryString[-1].isdigit():
+                        if entryString[-2] == "0":
+                            if not entryString[-3].isdigit() and not entryString[-3] == ".":
+                                entryString = entryString[:-2] + entryString[-1:]
+                                inputNum.configure(state=NORMAL)
+                                inputNum.delete("1.0", END)
+                                inputNum.insert(END, entryString, "tag-right")
+                                inputNum.configure(state="disabled")
+    # 산술 계산기 화면 출력 함수
     def printNormalButtons(self):
-        widget_list = all_children(window)
-        for item in widget_list:
+        # 화면 전환 할 때마다 위젯을 전부 삭제하고 재출력
+        widgetList = allChildren(window)
+        for item in widgetList:
             item.grid_forget()
         # 버튼 그리드 변수
         rowIndex = 1
@@ -660,10 +810,11 @@ class Calculator:
                 rowIndex += 1
                 colIndex = 0
         window.bind("<Key>", self.pressButtonKey)
-
+    # 공학용 계산기 화면 출력 함수
     def printScientificButtons(self):
-        widget_list = all_children(window)
-        for item in widget_list:
+        # 화면 전환 할 때마다 위젯을 전부 삭제하고 재출력
+        widgetList = allChildren(window)
+        for item in widgetList:
             item.grid_forget()
         rowIndex = 1
         colIndex = 0
@@ -708,11 +859,12 @@ class Calculator:
                 rowIndex += 1
                 colIndex = 0
         window.bind("<Key>", self.pressButtonKey)
-
+    # 프로그래머용 계산기 화면 출력 함수
     def printComputerButtons(self):
+        # 화면 전환 할 때마다 위젯을 전부 삭제하고 재출력
         font = Font(family="맑은 고딕", size=15)
-        widget_list = all_children(window)
-        for item in widget_list:
+        widgetList = allChildren(window)
+        for item in widgetList:
             item.grid_forget()
         rowIndex = 1
         colIndex = 0

@@ -29,6 +29,16 @@ class Calculator:
     # 양수 음수 전환을 위한 변수
     isPlusMinus = 0
 
+    # 진수 변환을 위한 변수들
+    radioValue = 0
+    alphaButtonList = []
+    octButtonList = []
+    binButtonList = []
+
+    #프로그래머용 계산기 변수
+    isComputerCalc = 0
+    pastValue = 0
+
     # 생성자
     def __init__(self, screen):
         self.setScreenValue(screen)
@@ -84,6 +94,7 @@ class Calculator:
         elif event.keycode == 27:
             self.printResult = 1
             self.isZeroDivision = 0
+            # 버튼 활성화 비활성화 여부 결정
             for expButton in self.expButtonList:
                 expButton.config(state=NORMAL)
             inputNum.configure(state=NORMAL)
@@ -105,6 +116,9 @@ class Calculator:
             else:
                 pass
         else:
+            if event.char.isalpha():
+                if ord(event.char) in range(ord("a"), ord("g")):
+                    event.char = event.char.upper()
             # 초기 화면 0표기와 연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1:
                 if event.char.isdigit():
@@ -130,7 +144,12 @@ class Calculator:
             if not self.isZeroDivision:
                 self.printResult = 0
                 inputNum.configure(state=NORMAL)
-                inputNum.insert(INSERT, event.char, "tag-right")
+                if self.radioValue == 2:
+                    if event.char.isalpha():
+                        if ord(event.char) in range(ord("A"), ord("G")):
+                            pass
+                else:
+                    inputNum.insert(INSERT, event.char, "tag-right")
                 entryString = inputNum.get("1.0", INSERT)
                 # 괄호 갯수 입력 제한
                 if event.char == ")":
@@ -138,6 +157,7 @@ class Calculator:
                     closeBracket = entryString.count(")")
                     if openBracket < closeBracket:
                         inputNum.delete("%s-1c" % INSERT, INSERT)
+                # 버튼 활성화 비활성화 여부 결정
                 for expButton in self.expButtonList:
                     expButton.config(state=NORMAL)
                 inputNum.configure(state="disabled")
@@ -151,6 +171,10 @@ class Calculator:
                                 inputNum.configure(state=NORMAL)
                                 inputNum.delete("1.0", "1.1")
                                 inputNum.configure(state="disabled")
+                            if ord(entryString[1]) in range(ord("A"), ord("G")):
+                                inputNum.configure(state=NORMAL)
+                                inputNum.delete("1.0", "1.1")
+                                inputNum.configure(state="disabled")
                             pass
                         else:
                             inputNum.configure(state=NORMAL)
@@ -161,6 +185,8 @@ class Calculator:
                         if not entryString[-1].isdigit():
                             if not entryString[-2].isdigit():
                                 if entryString[-2] == ")" or entryString[-2] == "(" or entryString[-1] == "(":
+                                    pass
+                                elif ord(entryString[-2]) in range(ord("A"), ord("G")):
                                     pass
                                 else:
                                     inputNum.configure(state=NORMAL)
@@ -226,6 +252,7 @@ class Calculator:
             self.printResult = 1
             self.isZeroDivision = 0
             self.isPlusMinus = 0
+            # 버튼 활성화 비활성화 여부 결정
             for expButton in self.expButtonList:
                 expButton.config(state=NORMAL)
             inputNum.configure(state=NORMAL)
@@ -243,6 +270,7 @@ class Calculator:
                 self.printResult = 1
                 self.isZeroDivision = 0
                 self.isPlusMinus = 0
+                # 버튼 활성화 비활성화 여부 결정
                 for expButton in self.expButtonList:
                     expButton.config(state=NORMAL)
                 inputNum.configure(state=NORMAL)
@@ -309,6 +337,7 @@ class Calculator:
                         if index < 0:
                             index += 1
                             break
+                    # 부호 변경
                     if self.isPlusMinus == 0:
                         inputNum.configure(state=NORMAL)
                         inputNum.delete("1.0", END)
@@ -721,6 +750,7 @@ class Calculator:
                     closeBracket = entryString.count(")")
                     if openBracket < closeBracket:
                         inputNum.delete("%s-1c" % INSERT, INSERT)
+                # 버튼 활성화 비활성화 여부 결정
                 for expButton in self.expButtonList:
                     expButton.config(state=NORMAL)
                 inputNum.configure(state="disabled")
@@ -734,6 +764,10 @@ class Calculator:
                                 inputNum.configure(state=NORMAL)
                                 inputNum.delete("1.0", "1.1")
                                 inputNum.configure(state="disabled")
+                            elif ord(entryString[1]) in range(ord("A"), ord("G")):
+                                inputNum.configure(state=NORMAL)
+                                inputNum.delete("1.0", "1.1")
+                                inputNum.configure(state="disabled")
                             pass
                         else:
                             inputNum.configure(state=NORMAL)
@@ -743,6 +777,8 @@ class Calculator:
                     if not entryString[-1].isdigit():
                         if not entryString[-2].isdigit():
                             if entryString[-2] == ")" or entryString[-2] == "(" or entryString[-1] == "(":
+                                pass
+                            elif ord(entryString[-2]) in range(ord("A"), ord("G")):
                                 pass
                             else:
                                 inputNum.configure(state=NORMAL)
@@ -760,6 +796,7 @@ class Calculator:
                                 inputNum.configure(state="disabled")
     # 산술 계산기 화면 출력 함수
     def printNormalButtons(self):
+        self.isComputerCalc = 0
         # 화면 전환 할 때마다 위젯을 전부 삭제하고 재출력
         widgetList = allChildren(window)
         for item in widgetList:
@@ -812,6 +849,7 @@ class Calculator:
         window.bind("<Key>", self.pressButtonKey)
     # 공학용 계산기 화면 출력 함수
     def printScientificButtons(self):
+        self.isComputerCalc = 0
         # 화면 전환 할 때마다 위젯을 전부 삭제하고 재출력
         widgetList = allChildren(window)
         for item in widgetList:
@@ -861,12 +899,16 @@ class Calculator:
         window.bind("<Key>", self.pressButtonKey)
     # 프로그래머용 계산기 화면 출력 함수
     def printComputerButtons(self):
+        self.isComputerCalc = 1
+        # 라디오 버튼 값 받아오기 변수
+        self.radioValue = IntVar()
+
         # 화면 전환 할 때마다 위젯을 전부 삭제하고 재출력
         font = Font(family="맑은 고딕", size=15)
         widgetList = allChildren(window)
         for item in widgetList:
             item.grid_forget()
-        rowIndex = 1
+        rowIndex = 2
         colIndex = 0
 
         buttonText = [
@@ -887,6 +929,98 @@ class Calculator:
         inputNum.insert(END, "0", "tag-right")
         inputNum.configure(state="disabled")
         self.printResult = 1
+        self.radioValue.set(2)
+        def selectRadio():
+            value = self.radioValue.get()
+            if value == 1:
+                number = inputNum.get("1.0", INSERT)
+                if self.pastValue == 2:
+                    number = int(number)
+                    number = f'{number:01X}'
+                elif self.pastValue == 3:
+                    number = int(number, 8)
+                    number = f'{number:01X}'
+                elif self.pastValue == 4:
+                    number = int(number, 2)
+                    number = f'{number:01X}'
+                inputNum.configure(state=NORMAL)
+                inputNum.delete("1.0", END)
+                inputNum.insert(END, number, "tag-right")
+                inputNum.configure(state="disabled")
+                for octButton in self.octButtonList:
+                    octButton.configure(state=NORMAL)
+                for alphaButton in self.alphaButtonList:
+                    alphaButton.configure(state=NORMAL)
+                self.pastValue = 1
+            elif value == 2:
+                number = inputNum.get("1.0", INSERT)
+                if self.pastValue == 1:
+                    number = int(number,16)
+                    number = f'{number}'
+                elif self.pastValue == 3:
+                    number = int(number, 8)
+                    number = f'{number}'
+                elif self.pastValue == 4:
+                    number = int(number, 2)
+                    number = f'{number}'
+                inputNum.configure(state=NORMAL)
+                inputNum.delete("1.0", END)
+                inputNum.insert(END, number, "tag-right")
+                inputNum.configure(state="disabled")
+                for binButton in self.binButtonList:
+                    binButton.configure(state=NORMAL)
+                for octButton in self.octButtonList:
+                    octButton.configure(state=NORMAL)
+                for alphaButton in self.alphaButtonList:
+                    alphaButton.configure(state="disabled")
+                self.pastValue = 2
+            elif value == 3:
+                number = inputNum.get("1.0", INSERT)
+                if self.pastValue == 1:
+                    number = int(number, 16)
+                    number = f'{number:0o}'
+                elif self.pastValue == 2:
+                    number = int(number)
+                    number = f'{number:0o}'
+                elif self.pastValue == 4:
+                    number = int(number, 2)
+                    number = f'{number:0o}'
+                inputNum.configure(state=NORMAL)
+                inputNum.delete("1.0", END)
+                inputNum.insert(END, number, "tag-right")
+                inputNum.configure(state="disabled")
+                for octButton in self.octButtonList:
+                    octButton.configure(state="disabled")
+                self.pastValue = 3
+            elif value == 4:
+                number = inputNum.get("1.0", INSERT)
+                if self.pastValue == 1:
+                    number = int(number, 16)
+                    number = f'{number:0b}'
+                elif self.pastValue == 2:
+                    number = int(number)
+                    number = f'{number:0b}'
+                elif self.pastValue == 3:
+                    number = int(number, 8)
+                    number = f'{number:0b}'
+                inputNum.configure(state=NORMAL)
+                inputNum.delete("1.0", END)
+                inputNum.insert(END, number, "tag-right")
+                inputNum.configure(state="disabled")
+                for binButton in self.binButtonList:
+                    binButton.configure(state="disabled")
+                for alphaButton in self.alphaButtonList:
+                    alphaButton.configure(state="disabled")
+                self.pastValue = 4
+        hexNumeral = Radiobutton(window, text="HEX", value=1, variable=self.radioValue, command=selectRadio)
+        hexNumeral.grid(row=1, column=0)
+        dexNumeral = Radiobutton(window, text="DEX", value=2, variable=self.radioValue, command=selectRadio)
+        dexNumeral.select()
+        dexNumeral.grid(row=1, column=1)
+        octNumeral = Radiobutton(window, text="OCT", value=3, variable=self.radioValue, command=selectRadio)
+        octNumeral.grid(row=1, column=2)
+        binNumeral = Radiobutton(window, text="BIN", value=4, variable=self.radioValue, command=selectRadio)
+        binNumeral.grid(row=1, column=3)
 
         buttonList = []
         index = 0
@@ -894,25 +1028,43 @@ class Calculator:
         for button in buttonText:
             def click(t=button):
                 self.pressButton(t)
-
             buttonObject = Button(window, text=button, width=5, height=2,\
                                   relief="groove", command=click, font=font, padx=0, pady=0)
             buttonObject.grid(row=rowIndex, column=colIndex, sticky="nesw")
             buttonList.append(buttonObject)
             # 컴퓨터 계산기 소수점 사용 금지
-            if buttonObject == ".":
+            if button == ".":
                 pointButton = buttonList[index]
                 pointButton.configure(state="disabled")
+            # 연산자 버튼 리스트
             if not button.isdigit():
-                if button == "AC":
+                if button == "AC" or button == ".":
                     pass
+                # 프로그래머용 계산기에서 16진수 수들은 연산자가 아님
+                elif len(button) == 1:
+                    if ord(button) in range(ord("A"), ord("G")):
+                        pass
                 else:
                     self.expButtonList.append(buttonObject)
+            # 진수 변경을 위한 각 진수 별 버튼 리스트
+            if len(button) == 1:
+                if ord(button) in range(ord("A"), ord("G")):
+                    self.alphaButtonList.append(buttonObject)
+                elif button == "8" or button == "9":
+                    self.octButtonList.append(buttonObject)
+                elif self.radioValue.get() == 4:
+                    print("enter")
+
+                    if int(button) in range(2, 10):
+                        self.binButtonList.append(buttonObject)
             index += 1
             colIndex += 1
             if colIndex > 5:
                 rowIndex += 1
                 colIndex = 0
+        # 화면 첫 출력 시 자동으로 10진수로 설정 (16진수 수 입력 불가)
+        for alphaButton in self.alphaButtonList:
+            alphaButton.configure(state="disabled")
 
     def printWindow(self, screenValue):
         # 메뉴 변수

@@ -23,14 +23,17 @@ class Calculator:
     printResult = 0
 
     # ZeroDivision 예외 처리를 위한 변수
+    # 연산자 버튼 객체 리스트
     expButtonList = []
+    # 연산자 버튼 텍스트 리스트
+    expButtonText = []
     isZeroDivision = 0
 
     # 양수 음수 전환을 위한 변수
     isPlusMinus = 0
 
     # 진수 변환을 위한 변수들
-    radioValue = 0
+    radioValue = IntVar()
     alphaButtonList = []
     octButtonList = []
     binButtonList = []
@@ -49,32 +52,179 @@ class Calculator:
 
     # 버튼 키보드 입력 이벤트
     def pressButtonKey(self, event):
+        numericType = self.radioValue.get()
         if event.keycode == 13 or event.char == "=": # Return (결과 반환)
             # 버튼 상에서의 연산자를 eval 가능한 연산자로 치환
             expression = inputNum.get("1.0", END)
             expression = expression.strip("\n")
-            if expression.find("Mod"):
-                expression = expression.replace("Mod", "%")
-            if expression.find("OR"):
+            if not numericType == 2:
+                if "/" in expression:
+                    expression = expression.replace("/", "//")
+            if expression.find(" Mod "):
+                expression = expression.replace(" Mod ", "%")
+            if expression.find(" OR "):
                 if "NOR" in expression:
-                    expression = "~("+expression+")"
-                    expression = expression.replace("NOR", "|")
-                expression = expression.replace("OR", "|")
-            if expression.find("XOR"):
-                expression = expression.replace("XOR", "^")
-            if expression.find("AND"):
+                    expression = "~(" + expression + ")"
+                    expression = expression.replace(" NOR ", "|")
+                expression = expression.replace(" OR ", "|")
+            if expression.find(" XOR "):
+                expression = expression.replace(" XOR ", "^")
+            if expression.find(" AND "):
                 if "NAND" in expression:
                     expression = "~(" + expression + ")"
-                    expression = expression.replace("NAND", "&")
-                expression = expression.replace("AND", "&")
-            if expression.find("Lsh"):
-                expression = expression.replace("Lsh", "<<")
-            if expression.find("Rsh"):
-                expression = expression.replace("Rsh", ">>")
+                    expression = expression.replace(" NAND ", "&")
+                expression = expression.replace(" AND ", "&")
+            if expression.find(" Lsh "):
+                expression = expression.replace(" Lsh ", "<<")
+            if expression.find(" Rsh "):
+                expression = expression.replace(" Rsh ", ">>")
+            numericType = self.radioValue.get()
+            # 16진수
+            if numericType == 1:
+                # 16진수 계산식을 만들기 위한 변수들
+                tempString = ""
+                enterNumber = ""
+                entryString = expression
+                isBracket = 0
+
+                if len(entryString) > 0:
+                    index = 0
+                    # 연산을 위해 0x를 붙힐 위치 선정
+                    if entryString[0].isdigit() \
+                            or ord(entryString[index]) in range(ord("A"), ord("G")) \
+                            or entryString[0] == "~" and not self.printResult == 1:
+                        while index < len(entryString):
+                            # 숫자가 아니고, A~F 사이의 16진수 수가 아닐 때
+                            if not entryString[index].isdigit() \
+                                    and not ord(entryString[index]) in range(ord("A"), ord("G")):
+                                if entryString[index] == "~" or entryString[index] == "(":
+                                    tempString += entryString[index]
+                                    index += 1
+                                    continue
+                                elif entryString[index] == ")":
+                                    isBracket = 1
+                                    tempString += "0x" + enterNumber + entryString[index]
+                                    break
+                                elif entryString[index] == "<":
+                                    tempString += "0x" + enterNumber + entryString[index] + entryString[index+1]
+                                    enterNumber = ""
+                                    index += 2
+                                elif entryString[index] == ">":
+                                    tempString += "0x" + enterNumber + entryString[index] + entryString[index+1]
+                                    enterNumber = ""
+                                    index += 2
+                                elif entryString[index] == "/":
+                                    tempString += "0x" + enterNumber + entryString[index] + entryString[index+1]
+                                    enterNumber = ""
+                                    index += 2
+                                else:
+                                    tempString += "0x" + enterNumber + entryString[index]
+                                    enterNumber = ""
+                                    index += 1
+                                    continue
+                            enterNumber += str(entryString[index])
+                            index += 1
+                        if not isBracket == 1:
+                            tempString += "0x" + enterNumber
+                        expression = tempString
+            # 8진수
+            elif numericType == 3:
+                # 8진수 계산식을 만들기 위한 변수들
+                tempString = ""
+                enterNumber = ""
+                entryString = expression
+                isBracket = 0
+
+                if len(entryString) > 0:
+                    index = 0
+                    # 연산을 위해 0x를 붙힐 위치 선정
+                    if entryString[0].isdigit() and not self.printResult == 1:
+                        while index < len(entryString):
+                            if not entryString[index].isdigit():
+                                if entryString[index] == "~" or entryString[index] == "(":
+                                    tempString += entryString[index]
+                                    index += 1
+                                    continue
+                                elif entryString[index] == ")":
+                                    isBracket = 1
+                                    tempString += "0o" + enterNumber + entryString[index]
+                                    break
+                                elif entryString[index] == "<":
+                                    tempString += "0o" + enterNumber + entryString[index] + entryString[index+1]
+                                    enterNumber = ""
+                                    index += 2
+                                elif entryString[index] == ">":
+                                    tempString += "0o" + enterNumber + entryString[index] + entryString[index+1]
+                                    enterNumber = ""
+                                    index += 2
+                                elif entryString[index] == "/":
+                                    tempString += "0o" + enterNumber + entryString[index] + entryString[index+1]
+                                    enterNumber = ""
+                                    index += 2
+                                else:
+                                    tempString += "0o" + enterNumber + entryString[index]
+                                    enterNumber = ""
+                                    index += 1
+                                    continue
+                            enterNumber += str(entryString[index])
+                            index += 1
+                        if not isBracket == 1:
+                            tempString += "0o" + enterNumber
+                        expression = tempString
+            # 2진수
+            elif numericType == 4:
+                # 2진수 계산식을 만들기 위한 변수들
+                tempString = ""
+                enterNumber = ""
+                entryString = expression
+                isBracket = 0
+
+                if len(entryString) > 0:
+                    index = 0
+                    # 연산을 위해 0x를 붙힐 위치 선정
+                    if entryString[0].isdigit() and not self.printResult == 1:
+                        while index < len(entryString):
+                            if not entryString[index].isdigit():
+                                if entryString[index] == "~" or entryString[index] == "(":
+                                    tempString += entryString[index]
+                                    index += 1
+                                    continue
+                                elif entryString[index] == ")":
+                                    isBracket = 1
+                                    tempString += "0b" + enterNumber + entryString[index]
+                                    break
+                                elif entryString[index] == "<":
+                                    tempString += "0b" + enterNumber + entryString[index] + entryString[index+1]
+                                    enterNumber = ""
+                                    index += 2
+                                elif entryString[index] == ">":
+                                    tempString += "0b" + enterNumber + entryString[index] + entryString[index+1]
+                                    enterNumber = ""
+                                    index += 2
+                                elif entryString[index] == "/":
+                                    tempString += "0b" + enterNumber + entryString[index] + entryString[index+1]
+                                    enterNumber = ""
+                                    index += 2
+                                else:
+                                    tempString += "0b" + enterNumber + entryString[index]
+                                    enterNumber = ""
+                                    index += 1
+                                    continue
+                            enterNumber += str(entryString[index])
+                            index += 1
+                        if not isBracket == 1:
+                            tempString += "0b" + enterNumber
+                        expression = tempString
             # ZeroDivisionError 예외처리
             try:
                 result = eval(expression)
                 strResult = str(result)
+                if numericType == 1:
+                    strResult = f'{int(hex(result), 16):01X}'
+                elif numericType == 3:
+                    strResult = f'{int(oct(result), 8):0o}'
+                elif numericType == 4:
+                    strResult = f'{int(bin(result), 2):0b}'
                 inputNum.configure(state=NORMAL)
                 inputNum.insert(END, "\n", "tag-right")
                 inputNum.insert("2.0", "= " + strResult, "tag-right")
@@ -153,10 +303,16 @@ class Calculator:
                 entryString = inputNum.get("1.0", INSERT)
                 # 괄호 갯수 입력 제한
                 if event.char == ")":
+                    if not entryString[-2].isdigit():
+                        inputNum.delete("%s-1c" % INSERT, INSERT)
                     openBracket = entryString.count("(")
                     closeBracket = entryString.count(")")
                     if openBracket < closeBracket:
                         inputNum.delete("%s-1c" % INSERT, INSERT)
+                if len(entryString) > 1:
+                    if event.char == "(" and not entryString[0] == "0":
+                        if entryString[-2].isdigit():
+                            inputNum.delete("%s-1c" % INSERT, INSERT)
                 # 버튼 활성화 비활성화 여부 결정
                 for expButton in self.expButtonList:
                     expButton.config(state=NORMAL)
@@ -186,7 +342,7 @@ class Calculator:
                             if not entryString[-2].isdigit():
                                 if entryString[-2] == ")" or entryString[-2] == "(" or entryString[-1] == "(":
                                     pass
-                                elif ord(entryString[-2]) in range(ord("A"), ord("G")):
+                                elif ord(entryString[-2]) in range(ord("A"), ord("G")) or ord(entryString[-1]) in range(ord("A"), ord("G")):
                                     pass
                                 else:
                                     inputNum.configure(state=NORMAL)
@@ -194,44 +350,190 @@ class Calculator:
                                     inputNum.insert(INSERT, event.char, "tag-right")
                                     inputNum.configure(state="disabled")
                     # 연산자 뒤에 0이 나와 연산할 수 없는 경우 (소수점 제외)
-                    if entryString[-1].isdigit():
-                        print("enter")
-                        if entryString[-2] == "0":
-                            if not entryString[-3].isdigit() and not entryString[-3] == ".":
-                                entryString = entryString[:-2] + entryString[-1:]
-                                inputNum.configure(state=NORMAL)
-                                inputNum.delete("1.0", END)
-                                inputNum.insert(END, entryString, "tag-right")
-                                inputNum.configure(state="disabled")
+                    if len(entryString) > 2:
+                        if entryString[-1].isdigit():
+                            if entryString[-2] == "0":
+                                if not entryString[-3].isdigit() and not entryString[-3] == ".":
+                                    entryString = entryString[:-2] + entryString[-1:]
+                                    inputNum.configure(state=NORMAL)
+                                    inputNum.delete("1.0", END)
+                                    inputNum.insert(END, entryString, "tag-right")
+                                    inputNum.configure(state="disabled")
     
     # 버튼 클릭 이벤트
     def pressButton(self, value):
+        numericType = self.radioValue.get()
         if value == "=":
             # 버튼 상에서의 연산자를 eval 가능한 연산자로 치환
             expression = inputNum.get("1.0", END)
             expression = expression.strip("\n")
-            if expression.find("Mod"):
-                expression = expression.replace("Mod", "%")
-            if expression.find("OR"):
+            if not numericType == 2:
+                if "/" in expression:
+                    expression = expression.replace("/", "//")
+            if expression.find(" Mod "):
+                expression = expression.replace(" Mod ", "%")
+            if expression.find(" OR "):
                 if "NOR" in expression:
                     expression = "~(" + expression + ")"
-                    expression = expression.replace("NOR", "|")
-                expression = expression.replace("OR", "|")
-            if expression.find("XOR"):
-                expression = expression.replace("XOR", "^")
-            if expression.find("AND"):
+                    expression = expression.replace(" NOR ", "|")
+                expression = expression.replace(" OR ", "|")
+            if expression.find(" XOR "):
+                expression = expression.replace(" XOR ", "^")
+            if expression.find(" AND "):
                 if "NAND" in expression:
                     expression = "~(" + expression + ")"
-                    expression = expression.replace("NAND", "&")
-                expression = expression.replace("AND", "&")
-            if expression.find("Lsh"):
-                expression = expression.replace("Lsh", "<<")
-            if expression.find("Rsh"):
-                expression = expression.replace("Rsh", ">>")
+                    expression = expression.replace(" NAND ", "&")
+                expression = expression.replace(" AND ", "&")
+            if expression.find(" Lsh "):
+                expression = expression.replace(" Lsh ", "<<")
+            if expression.find(" Rsh "):
+                expression = expression.replace(" Rsh ", ">>")
+            # 16진수
+            if numericType == 1:
+                # 16진수 계산식을 만들기 위한 변수들
+                tempString = ""
+                enterNumber = ""
+                entryString = expression
+                isBracket = 0
+
+                if len(entryString) > 0:
+                    index = 0
+                    # 연산을 위해 0x를 붙힐 위치 선정
+                    if entryString[0].isdigit()\
+                            or ord(entryString[index]) in range(ord("A"), ord("G"))\
+                            or entryString[0] == "~" and not self.printResult == 1:
+                        while index < len(entryString):
+                            # 숫자가 아니고, A~F 사이의 16진수 수가 아닐 때
+                            if not entryString[index].isdigit()\
+                                    and not ord(entryString[index]) in range(ord("A"), ord("G")):
+                                if entryString[index] == "~" or entryString[index] == "(":
+                                    tempString += entryString[index]
+                                    index += 1
+                                    continue
+                                elif entryString[index] == ")":
+                                    isBracket = 1
+                                    tempString += "0x" + enterNumber + entryString[index]
+                                    break
+                                elif entryString[index] == "<":
+                                    tempString += "0x" + enterNumber + entryString[index] + entryString[index+1]
+                                    enterNumber = ""
+                                    index += 2
+                                elif entryString[index] == ">":
+                                    tempString += "0x" + enterNumber + entryString[index] + entryString[index+1]
+                                    enterNumber = ""
+                                    index += 2
+                                elif entryString[index] == "/":
+                                    tempString += "0x" + enterNumber + entryString[index] + entryString[index + 1]
+                                    enterNumber = ""
+                                    index += 2
+                                else:
+                                    tempString += "0x" + enterNumber + entryString[index]
+                                    enterNumber = ""
+                                    index += 1
+                                    continue
+                            enterNumber += str(entryString[index])
+                            index += 1
+                        if not isBracket == 1:
+                            tempString += "0x" + enterNumber
+                        expression = tempString
+            # 8진수
+            elif numericType == 3:
+                # 8진수 계산식을 만들기 위한 변수들
+                tempString = ""
+                enterNumber = ""
+                entryString = expression
+                isBracket = 0
+
+                if len(entryString) > 0:
+                    index = 0
+                    # 연산을 위해 0x를 붙힐 위치 선정
+                    if entryString[0].isdigit() and not self.printResult == 1:
+                        while index < len(entryString):
+                            if not entryString[index].isdigit():
+                                if entryString[index] == "~" or entryString[index] == "(":
+                                    tempString += entryString[index]
+                                    index += 1
+                                    continue
+                                elif entryString[index] == ")":
+                                    isBracket = 1
+                                    tempString += "0o" + enterNumber + entryString[index]
+                                    break
+                                elif entryString[index] == "<":
+                                    tempString += "0o" + enterNumber + entryString[index] + entryString[index+1]
+                                    enterNumber = ""
+                                    index += 2
+                                elif entryString[index] == ">":
+                                    tempString += "0o" + enterNumber + entryString[index] + entryString[index+1]
+                                    enterNumber = ""
+                                    index += 2
+                                elif entryString[index] == "/":
+                                    tempString += "0o" + enterNumber + entryString[index] + entryString[index+1]
+                                    enterNumber = ""
+                                    index += 2
+                                else:
+                                    tempString += "0o" + enterNumber + entryString[index]
+                                    enterNumber = ""
+                                    index += 1
+                                    continue
+                            enterNumber += str(entryString[index])
+                            index += 1
+                        if not isBracket == 1:
+                            tempString += "0o" + enterNumber
+                        expression = tempString
+            # 2진수
+            elif numericType == 4:
+                # 2진수 계산식을 만들기 위한 변수들
+                tempString = ""
+                enterNumber = ""
+                entryString = expression
+                isBracket = 0
+
+                if len(entryString) > 0:
+                    index = 0
+                    # 연산을 위해 0x를 붙힐 위치 선정
+                    if entryString[0].isdigit() and not self.printResult == 1:
+                        while index < len(entryString):
+                            if not entryString[index].isdigit():
+                                if entryString[index] == "~" or entryString[index] == "(":
+                                    tempString += entryString[index]
+                                    index += 1
+                                    continue
+                                elif entryString[index] == ")":
+                                    isBracket = 1
+                                    tempString += "0b" + enterNumber + entryString[index]
+                                    break
+                                elif entryString[index] == "<":
+                                    tempString += "0b" + enterNumber + entryString[index] + entryString[index+1]
+                                    enterNumber = ""
+                                    index += 2
+                                elif entryString[index] == ">":
+                                    tempString += "0b" + enterNumber + entryString[index] + entryString[index+1]
+                                    enterNumber = ""
+                                    index += 2
+                                elif entryString[index] == "/":
+                                    tempString += "0b" + enterNumber + entryString[index] + entryString[index+1]
+                                    enterNumber = ""
+                                    index += 2
+                                else:
+                                    tempString += "0b" + enterNumber + entryString[index]
+                                    enterNumber = ""
+                                    index += 1
+                                    continue
+                            enterNumber += str(entryString[index])
+                            index += 1
+                        if not isBracket == 1:
+                            tempString += "0b" + enterNumber
+                        expression = tempString
             # ZeroDivisionError 예외처리
             try:
                 result = eval(expression)
                 strResult = str(result)
+                if numericType == 1:
+                    strResult = f'{int(hex(result), 16):01X}'
+                elif numericType == 3:
+                    strResult = f'{int(oct(result), 8):0o}'
+                elif numericType == 4:
+                    strResult = f'{int(bin(result), 2):0b}'
                 inputNum.configure(state=NORMAL)
                 inputNum.insert(END, "\n", "tag-right")
                 inputNum.insert("2.0", "= " + strResult, "tag-right")
@@ -258,7 +560,7 @@ class Calculator:
             inputNum.configure(state=NORMAL)
             inputNum.delete("1.0", END)
             inputNum.insert(END, "0", "tag-right")
-            self.printResult = 1
+            self.printResult = 0
             inputNum.configure(state="disabled")
         # 현재 입력했던 것 삭제 (숫자, 연산자 단위)
         elif value == "CE":
@@ -266,7 +568,6 @@ class Calculator:
             entryString = inputNum.get("1.0", INSERT)
             # 현재 수식이 0밖에 없을 경우, 즉 초기화면과 같을 경우 AC와 같은 동작
             if entryString == "0" or self.printResult == 1:
-                print(len(entryString))
                 self.printResult = 1
                 self.isZeroDivision = 0
                 self.isPlusMinus = 0
@@ -329,9 +630,10 @@ class Calculator:
             entryString = inputNum.get("1.0", INSERT)
             if len(entryString) > 0:
                 index = len(entryString) - 1
-                # 숫자일 경우
-                if entryString[-1].isdigit() and not self.printResult == 1:
-                    while entryString[index].isdigit():
+                enterNumber = 0
+                # 숫자일 경우나 소수점이 있을 경우에 부호를 입력할 위치 선정
+                if entryString[-1].isdigit() or entryString[-1] == "." and not self.printResult == 1:
+                    while entryString[index].isdigit() or entryString[index] == ".":
                         enterNumber = entryString[index:]
                         index -= 1
                         if index < 0:
@@ -341,12 +643,10 @@ class Calculator:
                     if self.isPlusMinus == 0:
                         inputNum.configure(state=NORMAL)
                         inputNum.delete("1.0", END)
-                        print(index)
                         if entryString == enterNumber:
                             inputNum.insert(END, "-" + enterNumber, "tag-right")
                         else:
                             inputNum.insert(END, entryString[0:index+1] + "-" + enterNumber, "tag-right")
-                        print(entryString[0:index+1])
                         inputNum.configure(state="disabled")
                         self.isPlusMinus = 1
                     else:
@@ -377,7 +677,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -415,7 +714,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -433,7 +731,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -451,7 +748,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -468,7 +764,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -481,7 +776,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -504,7 +798,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -522,7 +815,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -568,7 +860,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -585,7 +876,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -602,7 +892,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -614,7 +903,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -626,7 +914,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -638,7 +925,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -650,7 +936,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -668,7 +953,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -680,7 +964,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -692,7 +975,6 @@ class Calculator:
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -702,10 +984,8 @@ class Calculator:
             inputNum.configure(state="disabled")
         elif value == "Rsh":
             if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
-                print("enter")
                 inputNum.configure(state=NORMAL)
                 pastResult = inputNum.get("2.2", "%s" % INSERT)
-                print(pastResult)
                 inputNum.delete("1.0", END)
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
@@ -743,13 +1023,18 @@ class Calculator:
                 inputNum.configure(state=NORMAL)
                 inputNum.insert(INSERT, value, "tag-right")
                 entryString = inputNum.get("1.0", INSERT)
-                print(entryString)
                 # 괄호 갯수 입력 제한
                 if value == ")":
+                    if not entryString[-2].isdigit():
+                        inputNum.delete("%s-1c" % INSERT, INSERT)
                     openBracket = entryString.count("(")
                     closeBracket = entryString.count(")")
                     if openBracket < closeBracket:
                         inputNum.delete("%s-1c" % INSERT, INSERT)
+                if len(entryString) > 1:
+                    if value == "(" and not entryString[0] == "0":
+                        if entryString[-2].isdigit():
+                            inputNum.delete("%s-1c" % INSERT, INSERT)
                 # 버튼 활성화 비활성화 여부 결정
                 for expButton in self.expButtonList:
                     expButton.config(state=NORMAL)
@@ -778,7 +1063,7 @@ class Calculator:
                         if not entryString[-2].isdigit():
                             if entryString[-2] == ")" or entryString[-2] == "(" or entryString[-1] == "(":
                                 pass
-                            elif ord(entryString[-2]) in range(ord("A"), ord("G")):
+                            elif ord(entryString[-2]) in range(ord("A"), ord("G")) or ord(entryString[-1]) in range(ord("A"), ord("G")):
                                 pass
                             else:
                                 inputNum.configure(state=NORMAL)
@@ -786,14 +1071,15 @@ class Calculator:
                                 inputNum.insert(INSERT, value, "tag-right")
                                 inputNum.configure(state="disabled")
                     # 연산자 뒤의 수가 0이 먼저 나와 연산할 수 없는 경우 (소수점 제외)
-                    if entryString[-1].isdigit():
-                        if entryString[-2] == "0":
-                            if not entryString[-3].isdigit() and not entryString[-3] == ".":
-                                entryString = entryString[:-2] + entryString[-1:]
-                                inputNum.configure(state=NORMAL)
-                                inputNum.delete("1.0", END)
-                                inputNum.insert(END, entryString, "tag-right")
-                                inputNum.configure(state="disabled")
+                    if len(entryString) > 2:
+                        if entryString[-1].isdigit():
+                            if entryString[-2] == "0":
+                                if not entryString[-3].isdigit() and not entryString[-3] == ".":
+                                    entryString = entryString[:-2] + entryString[-1:]
+                                    inputNum.configure(state=NORMAL)
+                                    inputNum.delete("1.0", END)
+                                    inputNum.insert(END, entryString, "tag-right")
+                                    inputNum.configure(state="disabled")
     # 산술 계산기 화면 출력 함수
     def printNormalButtons(self):
         self.isComputerCalc = 0
@@ -812,7 +1098,7 @@ class Calculator:
             '7', '8', '9', '*',
             '4', '5', '6', '-',
             '1', '2', '3', '+',
-            '.', '0', '=', '±'
+            '.', '0', '±', '='
         ]
 
         # 결과 표시창
@@ -841,6 +1127,9 @@ class Calculator:
                     pass
                 else:
                     self.expButtonList.append(buttonObject)
+            # 결과 출력 버튼 색 변경
+            if button == "=":
+                buttonObject.configure(bg="skyblue")
             index += 1
             colIndex += 1
             if colIndex > 3:
@@ -862,7 +1151,7 @@ class Calculator:
             '7', '8', '9', '/', 'log',
             '4', '5', '6', '*', 'AC',
             '1', '2', '3', '-', 'CE',
-            '.', '0', '=', '+', '±',
+            '.', '0', '±', '+', '=',
         ]
 
         # 결과 표시창
@@ -891,6 +1180,9 @@ class Calculator:
                     pass
                 else:
                     self.expButtonList.append(buttonObject)
+            # 결과 출력 버튼 색 변경
+            if button == "=":
+                buttonObject.configure(bg="skyblue")
             index += 1
             colIndex += 1
             if colIndex > 4:
@@ -900,11 +1192,11 @@ class Calculator:
     # 프로그래머용 계산기 화면 출력 함수
     def printComputerButtons(self):
         self.isComputerCalc = 1
-        # 라디오 버튼 값 받아오기 변수
-        self.radioValue = IntVar()
+        self.printResult = 0
 
         # 화면 전환 할 때마다 위젯을 전부 삭제하고 재출력
         font = Font(family="맑은 고딕", size=15)
+        radioFont = Font(family="맑은 고딕", size=10, weight="bold")
         widgetList = allChildren(window)
         for item in widgetList:
             item.grid_forget()
@@ -928,41 +1220,78 @@ class Calculator:
         inputNum.grid(row=0, column=0, columnspan=6, pady=5, ipady=20, ipadx=5)
         inputNum.insert(END, "0", "tag-right")
         inputNum.configure(state="disabled")
-        self.printResult = 1
-        self.radioValue.set(2)
+
+        # 첫 화면은 10진수
+        for binButton in self.binButtonList:
+            binButton.configure(state=NORMAL)
+        for octButton in self.octButtonList:
+            octButton.configure(state=NORMAL)
+        for alphaButton in self.alphaButtonList:
+            alphaButton.configure(state="disabled")
+        self.pastValue = 2
+
+        # 라디오 버튼 이벤트 처리 (진수 변환)
         def selectRadio():
             value = self.radioValue.get()
             if value == 1:
-                number = inputNum.get("1.0", INSERT)
-                if self.pastValue == 2:
-                    number = int(number)
-                    number = f'{number:01X}'
-                elif self.pastValue == 3:
-                    number = int(number, 8)
-                    number = f'{number:01X}'
-                elif self.pastValue == 4:
-                    number = int(number, 2)
-                    number = f'{number:01X}'
+                if self.printResult == 1:
+                    number = inputNum.get("2.2", INSERT)
+                    if self.pastValue == 2:
+                        number = int(number)
+                        number = f'{number:01X}'
+                    elif self.pastValue == 3:
+                        number = int(number, 8)
+                        number = f'{number:01X}'
+                    elif self.pastValue == 4:
+                        number = int(number, 2)
+                        number = f'{number:01X}'
+                    self.printResult = 0
+                else:
+                    number = inputNum.get("1.0", END)
+                    if self.pastValue == 2:
+                        number = int(number)
+                        number = f'{number:01X}'
+                    elif self.pastValue == 3:
+                        number = int(number, 8)
+                        number = f'{number:01X}'
+                    elif self.pastValue == 4:
+                        number = int(number, 2)
+                        number = f'{number:01X}'
                 inputNum.configure(state=NORMAL)
                 inputNum.delete("1.0", END)
                 inputNum.insert(END, number, "tag-right")
                 inputNum.configure(state="disabled")
                 for octButton in self.octButtonList:
                     octButton.configure(state=NORMAL)
+                for binButton in self.binButtonList:
+                    binButton.configure(state=NORMAL)
                 for alphaButton in self.alphaButtonList:
                     alphaButton.configure(state=NORMAL)
                 self.pastValue = 1
             elif value == 2:
-                number = inputNum.get("1.0", INSERT)
-                if self.pastValue == 1:
-                    number = int(number,16)
-                    number = f'{number}'
-                elif self.pastValue == 3:
-                    number = int(number, 8)
-                    number = f'{number}'
-                elif self.pastValue == 4:
-                    number = int(number, 2)
-                    number = f'{number}'
+                if self.printResult == 1:
+                    number = inputNum.get("2.2", INSERT)
+                    if self.pastValue == 1:
+                        number = int(number, 16)
+                        number = f'{number}'
+                    elif self.pastValue == 3:
+                        number = int(number, 8)
+                        number = f'{number}'
+                    elif self.pastValue == 4:
+                        number = int(number, 2)
+                        number = f'{number}'
+                    self.printResult = 0
+                else:
+                    number = inputNum.get("1.0", END)
+                    if self.pastValue == 1:
+                        number = int(number, 16)
+                        number = f'{number}'
+                    elif self.pastValue == 3:
+                        number = int(number, 8)
+                        number = f'{number}'
+                    elif self.pastValue == 4:
+                        number = int(number, 2)
+                        number = f'{number}'
                 inputNum.configure(state=NORMAL)
                 inputNum.delete("1.0", END)
                 inputNum.insert(END, number, "tag-right")
@@ -975,34 +1304,62 @@ class Calculator:
                     alphaButton.configure(state="disabled")
                 self.pastValue = 2
             elif value == 3:
-                number = inputNum.get("1.0", INSERT)
-                if self.pastValue == 1:
-                    number = int(number, 16)
-                    number = f'{number:0o}'
-                elif self.pastValue == 2:
-                    number = int(number)
-                    number = f'{number:0o}'
-                elif self.pastValue == 4:
-                    number = int(number, 2)
-                    number = f'{number:0o}'
+                if self.printResult == 1:
+                    number = inputNum.get("2.2", INSERT)
+                    if self.pastValue == 1:
+                        number = int(number, 16)
+                        number = f'{number:0o}'
+                    elif self.pastValue == 2:
+                        number = int(number)
+                        number = f'{number:0o}'
+                    elif self.pastValue == 4:
+                        number = int(number, 2)
+                        number = f'{number:0o}'
+                    self.printResult = 0
+                else:
+                    number = inputNum.get("1.0", END)
+                    if self.pastValue == 1:
+                        number = int(number, 16)
+                        number = f'{number:0o}'
+                    elif self.pastValue == 2:
+                        number = int(number)
+                        number = f'{number:0o}'
+                    elif self.pastValue == 4:
+                        number = int(number, 2)
+                        number = f'{number:0o}'
                 inputNum.configure(state=NORMAL)
                 inputNum.delete("1.0", END)
                 inputNum.insert(END, number, "tag-right")
                 inputNum.configure(state="disabled")
+                for binButton in self.binButtonList:
+                    binButton.configure(state=NORMAL)
                 for octButton in self.octButtonList:
                     octButton.configure(state="disabled")
                 self.pastValue = 3
             elif value == 4:
-                number = inputNum.get("1.0", INSERT)
-                if self.pastValue == 1:
-                    number = int(number, 16)
-                    number = f'{number:0b}'
-                elif self.pastValue == 2:
-                    number = int(number)
-                    number = f'{number:0b}'
-                elif self.pastValue == 3:
-                    number = int(number, 8)
-                    number = f'{number:0b}'
+                if self.printResult == 1:
+                    number = inputNum.get("2.2", INSERT)
+                    if self.pastValue == 1:
+                        number = int(number, 16)
+                        number = f'{number:0b}'
+                    elif self.pastValue == 2:
+                        number = int(number)
+                        number = f'{number:0b}'
+                    elif self.pastValue == 3:
+                        number = int(number, 8)
+                        number = f'{number:0b}'
+                    self.printResult = 0
+                else:
+                    number = inputNum.get("1.0", END)
+                    if self.pastValue == 1:
+                        number = int(number, 16)
+                        number = f'{number:0b}'
+                    elif self.pastValue == 2:
+                        number = int(number)
+                        number = f'{number:0b}'
+                    elif self.pastValue == 3:
+                        number = int(number, 8)
+                        number = f'{number:0b}'
                 inputNum.configure(state=NORMAL)
                 inputNum.delete("1.0", END)
                 inputNum.insert(END, number, "tag-right")
@@ -1012,15 +1369,17 @@ class Calculator:
                 for alphaButton in self.alphaButtonList:
                     alphaButton.configure(state="disabled")
                 self.pastValue = 4
-        hexNumeral = Radiobutton(window, text="HEX", value=1, variable=self.radioValue, command=selectRadio)
-        hexNumeral.grid(row=1, column=0)
-        dexNumeral = Radiobutton(window, text="DEX", value=2, variable=self.radioValue, command=selectRadio)
+        # 라디오 버튼 목록
+        hexNumeral = Radiobutton(window, text="HEX", value=1, variable=self.radioValue, font=radioFont, command=selectRadio)
+        hexNumeral.grid(row=1, column=1, sticky="nesw")
+        dexNumeral = Radiobutton(window, text="DEX", value=2, variable=self.radioValue, font=radioFont, command=selectRadio)
         dexNumeral.select()
-        dexNumeral.grid(row=1, column=1)
-        octNumeral = Radiobutton(window, text="OCT", value=3, variable=self.radioValue, command=selectRadio)
-        octNumeral.grid(row=1, column=2)
-        binNumeral = Radiobutton(window, text="BIN", value=4, variable=self.radioValue, command=selectRadio)
-        binNumeral.grid(row=1, column=3)
+        self.radioValue.set(2)
+        dexNumeral.grid(row=1, column=2, sticky="nesw")
+        octNumeral = Radiobutton(window, text="OCT", value=3, variable=self.radioValue, font=radioFont, command=selectRadio)
+        octNumeral.grid(row=1, column=3, sticky="nesw")
+        binNumeral = Radiobutton(window, text="BIN", value=4, variable=self.radioValue, font=radioFont, command=selectRadio)
+        binNumeral.grid(row=1, column=4, sticky="nesw")
 
         buttonList = []
         index = 0
@@ -1045,18 +1404,20 @@ class Calculator:
                     if ord(button) in range(ord("A"), ord("G")):
                         pass
                 else:
+                    self.expButtonText.append(button)
                     self.expButtonList.append(buttonObject)
+            # 결과 출력 버튼 색 변경
+            if button == "=":
+                buttonObject.configure(bg="skyblue")
             # 진수 변경을 위한 각 진수 별 버튼 리스트
             if len(button) == 1:
                 if ord(button) in range(ord("A"), ord("G")):
                     self.alphaButtonList.append(buttonObject)
                 elif button == "8" or button == "9":
                     self.octButtonList.append(buttonObject)
-                elif self.radioValue.get() == 4:
-                    print("enter")
-
-                    if int(button) in range(2, 10):
-                        self.binButtonList.append(buttonObject)
+                    self.binButtonList.append(buttonObject)
+                elif ord(button) in range(ord("2"), ord("9")):
+                    self.binButtonList.append(buttonObject)
             index += 1
             colIndex += 1
             if colIndex > 5:
@@ -1081,3 +1442,4 @@ class Calculator:
 
 if __name__ == "__main__":
     mainCalc = Calculator("산술")
+    print(eval("0xa+0x3e"))

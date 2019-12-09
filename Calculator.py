@@ -2,7 +2,9 @@ from tkinter import *
 from tkinter.font import *
 from math import *
 from decimal import Decimal
+import UnitChanger as uc
 
+# Tkinter 객체 생성
 window = Tk()
 window.title("종합 계산기")
 window.resizable(0, 0)
@@ -17,6 +19,9 @@ def allChildren(window):
         if item.winfo_children():
             widgetList.extend(item.winfo_children())
         return widgetList
+
+#단위 변환 객체
+unitChanger = uc.UnitChanger(window, allChildren)
 
 class Calculator:
     # 결과 출력 여부 체크
@@ -42,22 +47,13 @@ class Calculator:
     isComputerCalc = 0
     pastValue = 0
 
-    # 생성자
-    def __init__(self, screen):
-        self.setScreenValue(screen)
-
-    # 화면 구성 변수 설정 (산술, 공학, 단위 등)
-    def setScreenValue(self, buttonValue):
-        self.printWindow(buttonValue)
-
     # 버튼 키보드 입력 이벤트
     def pressButtonKey(self, event):
-        numericType = self.radioValue.get()
         if event.keycode == 13 or event.char == "=": # Return (결과 반환)
             # 버튼 상에서의 연산자를 eval 가능한 연산자로 치환
             expression = inputNum.get("1.0", END)
             expression = expression.strip("\n")
-            if not numericType == 2:
+            if self.isComputerCalc == 1:
                 if "/" in expression:
                     expression = expression.replace("/", "//")
             if expression.find(" Mod "):
@@ -244,12 +240,14 @@ class Calculator:
         elif event.keycode == 27:
             self.printResult = 1
             self.isZeroDivision = 0
+            self.isPlusMinus = 0
             # 버튼 활성화 비활성화 여부 결정
             for expButton in self.expButtonList:
                 expButton.config(state=NORMAL)
             inputNum.configure(state=NORMAL)
             inputNum.delete("1.0", END)
             inputNum.insert(END, "0", "tag-right")
+            self.printResult = 0
             inputNum.configure(state="disabled")
         # Backspace 기능
         elif event.keycode == 8 and not self.isZeroDivision:
@@ -294,12 +292,42 @@ class Calculator:
             if not self.isZeroDivision:
                 self.printResult = 0
                 inputNum.configure(state=NORMAL)
-                if self.radioValue == 2:
-                    if event.char.isalpha():
-                        if ord(event.char) in range(ord("A"), ord("G")):
+                # 프로그래머용 계산기일 경우 입력 제한
+                if self.isComputerCalc == 1:
+                    numericValue = self.radioValue.get()
+                    # 10진수 입력
+                    if numericValue == 2:
+                        # 16진수 수 입력 금지 (모든 알파벳 포함)
+                        if ord(event.char.upper()) in range(ord("A"), ord("Z")+1):
                             pass
+                        else:
+                            inputNum.insert(INSERT, event.char, "tag-right")
+                    # 8진수 입력
+                    elif numericValue == 3:
+                        # 16진수 수와 8, 9 입력 금지
+                        if ord(event.char.upper()) in range(ord("A"), ord("Z")+1) or ord(event.char) in range(ord("8"), ord("9")+1):
+                            pass
+                        else:
+                            inputNum.insert(INSERT, event.char, "tag-right")
+                    # 2진수 입력
+                    elif numericValue == 4:
+                        # 16진수 수와 2~9까지 입력 금지
+                        if ord(event.char.upper()) in range(ord("A"), ord("Z")+1) or ord(event.char) in range(ord("2"), ord("9")+1):
+                            pass
+                        else:
+                            inputNum.insert(INSERT, event.char, "tag-right")
+                    # 16진수 모든 입력 가능 (16진수 수 이외의 알파벳 제외)
+                    else:
+                        if ord(event.char.upper()) in range(ord("G"), ord("Z") + 1):
+                            pass
+                        else:
+                            inputNum.insert(INSERT, event.char, "tag-right")
                 else:
-                    inputNum.insert(INSERT, event.char, "tag-right")
+                    #컴퓨터용 계산기 외의 계산기에서도 알파벳 입력 제한
+                    if ord(event.char.upper()) in range(ord("A"), ord("Z") + 1):
+                        pass
+                    else:
+                        inputNum.insert(INSERT, event.char, "tag-right")
                 entryString = inputNum.get("1.0", INSERT)
                 # 괄호 갯수 입력 제한
                 if event.char == ")":
@@ -367,7 +395,7 @@ class Calculator:
             # 버튼 상에서의 연산자를 eval 가능한 연산자로 치환
             expression = inputNum.get("1.0", END)
             expression = expression.strip("\n")
-            if not numericType == 2:
+            if self.isComputerCalc == 1:
                 if "/" in expression:
                     expression = expression.replace("/", "//")
             if expression.find(" Mod "):
@@ -1081,7 +1109,7 @@ class Calculator:
                                     inputNum.insert(END, entryString, "tag-right")
                                     inputNum.configure(state="disabled")
     # 산술 계산기 화면 출력 함수
-    def printNormalButtons(self):
+    def printNormalCalc(self):
         self.isComputerCalc = 0
         # 화면 전환 할 때마다 위젯을 전부 삭제하고 재출력
         widgetList = allChildren(window)
@@ -1137,7 +1165,7 @@ class Calculator:
                 colIndex = 0
         window.bind("<Key>", self.pressButtonKey)
     # 공학용 계산기 화면 출력 함수
-    def printScientificButtons(self):
+    def printScientificCalc(self):
         self.isComputerCalc = 0
         # 화면 전환 할 때마다 위젯을 전부 삭제하고 재출력
         widgetList = allChildren(window)
@@ -1190,7 +1218,7 @@ class Calculator:
                 colIndex = 0
         window.bind("<Key>", self.pressButtonKey)
     # 프로그래머용 계산기 화면 출력 함수
-    def printComputerButtons(self):
+    def printComputerCalc(self):
         self.isComputerCalc = 1
         self.printResult = 0
 
@@ -1234,109 +1262,115 @@ class Calculator:
         def selectRadio():
             value = self.radioValue.get()
             if value == 1:
-                if self.printResult == 1:
-                    number = inputNum.get("2.2", INSERT)
-                    if self.pastValue == 2:
-                        number = int(number)
-                        number = f'{number:01X}'
-                    elif self.pastValue == 3:
-                        number = int(number, 8)
-                        number = f'{number:01X}'
-                    elif self.pastValue == 4:
-                        number = int(number, 2)
-                        number = f'{number:01X}'
-                    self.printResult = 0
-                else:
-                    number = inputNum.get("1.0", END)
-                    if self.pastValue == 2:
-                        number = int(number)
-                        number = f'{number:01X}'
-                    elif self.pastValue == 3:
-                        number = int(number, 8)
-                        number = f'{number:01X}'
-                    elif self.pastValue == 4:
-                        number = int(number, 2)
-                        number = f'{number:01X}'
-                inputNum.configure(state=NORMAL)
-                inputNum.delete("1.0", END)
-                inputNum.insert(END, number, "tag-right")
-                inputNum.configure(state="disabled")
                 for octButton in self.octButtonList:
                     octButton.configure(state=NORMAL)
                 for binButton in self.binButtonList:
                     binButton.configure(state=NORMAL)
                 for alphaButton in self.alphaButtonList:
                     alphaButton.configure(state=NORMAL)
-                self.pastValue = 1
-            elif value == 2:
                 if self.printResult == 1:
                     number = inputNum.get("2.2", INSERT)
-                    if self.pastValue == 1:
-                        number = int(number, 16)
-                        number = f'{number}'
+                    if self.pastValue == 2:
+                        number = int(number)
+                        number = f'{number:01X}'
                     elif self.pastValue == 3:
                         number = int(number, 8)
-                        number = f'{number}'
+                        number = f'{number:01X}'
                     elif self.pastValue == 4:
                         number = int(number, 2)
-                        number = f'{number}'
+                        number = f'{number:01X}'
                     self.printResult = 0
                 else:
-                    number = inputNum.get("1.0", END)
-                    if self.pastValue == 1:
-                        number = int(number, 16)
-                        number = f'{number}'
+                    number = inputNum.get("1.0", INSERT)
+                    if self.pastValue == 2:
+                        number = int(number)
+                        number = f'{number:01X}'
                     elif self.pastValue == 3:
                         number = int(number, 8)
-                        number = f'{number}'
+                        number = f'{number:01X}'
                     elif self.pastValue == 4:
                         number = int(number, 2)
-                        number = f'{number}'
+                        number = f'{number:01X}'
                 inputNum.configure(state=NORMAL)
                 inputNum.delete("1.0", END)
                 inputNum.insert(END, number, "tag-right")
                 inputNum.configure(state="disabled")
+                self.pastValue = 1
+            elif value == 2:
                 for binButton in self.binButtonList:
                     binButton.configure(state=NORMAL)
                 for octButton in self.octButtonList:
                     octButton.configure(state=NORMAL)
                 for alphaButton in self.alphaButtonList:
                     alphaButton.configure(state="disabled")
-                self.pastValue = 2
-            elif value == 3:
                 if self.printResult == 1:
                     number = inputNum.get("2.2", INSERT)
                     if self.pastValue == 1:
                         number = int(number, 16)
-                        number = f'{number:0o}'
-                    elif self.pastValue == 2:
-                        number = int(number)
-                        number = f'{number:0o}'
+                        number = f'{number}'
+                    elif self.pastValue == 3:
+                        number = int(number, 8)
+                        number = f'{number}'
                     elif self.pastValue == 4:
                         number = int(number, 2)
-                        number = f'{number:0o}'
+                        number = f'{number}'
                     self.printResult = 0
                 else:
-                    number = inputNum.get("1.0", END)
+                    number = inputNum.get("1.0", INSERT)
                     if self.pastValue == 1:
                         number = int(number, 16)
-                        number = f'{number:0o}'
-                    elif self.pastValue == 2:
-                        number = int(number)
-                        number = f'{number:0o}'
+                        number = f'{number}'
+                    elif self.pastValue == 3:
+                        number = int(number, 8)
+                        number = f'{number}'
                     elif self.pastValue == 4:
                         number = int(number, 2)
-                        number = f'{number:0o}'
+                        number = f'{number}'
                 inputNum.configure(state=NORMAL)
                 inputNum.delete("1.0", END)
                 inputNum.insert(END, number, "tag-right")
                 inputNum.configure(state="disabled")
+                self.pastValue = 2
+            elif value == 3:
                 for binButton in self.binButtonList:
                     binButton.configure(state=NORMAL)
                 for octButton in self.octButtonList:
                     octButton.configure(state="disabled")
+                for alphaButton in self.alphaButtonList:
+                    alphaButton.configure(state="disabled")
+                if self.printResult == 1:
+                    number = inputNum.get("2.2", INSERT)
+                    if self.pastValue == 1:
+                        number = int(number, 16)
+                        number = f'{number:0o}'
+                    elif self.pastValue == 2:
+                        number = int(number)
+                        number = f'{number:0o}'
+                    elif self.pastValue == 4:
+                        number = int(number, 2)
+                        number = f'{number:0o}'
+                    self.printResult = 0
+                else:
+                    number = inputNum.get("1.0", INSERT)
+                    if self.pastValue == 1:
+                        number = int(number, 16)
+                        number = f'{number:0o}'
+                    elif self.pastValue == 2:
+                        number = int(number)
+                        number = f'{number:0o}'
+                    elif self.pastValue == 4:
+                        number = int(number, 2)
+                        number = f'{number:0o}'
+                inputNum.configure(state=NORMAL)
+                inputNum.delete("1.0", END)
+                inputNum.insert(END, number, "tag-right")
+                inputNum.configure(state="disabled")
                 self.pastValue = 3
             elif value == 4:
+                for binButton in self.binButtonList:
+                    binButton.configure(state="disabled")
+                for alphaButton in self.alphaButtonList:
+                    alphaButton.configure(state="disabled")
                 if self.printResult == 1:
                     number = inputNum.get("2.2", INSERT)
                     if self.pastValue == 1:
@@ -1350,7 +1384,7 @@ class Calculator:
                         number = f'{number:0b}'
                     self.printResult = 0
                 else:
-                    number = inputNum.get("1.0", END)
+                    number = inputNum.get("1.0", INSERT)
                     if self.pastValue == 1:
                         number = int(number, 16)
                         number = f'{number:0b}'
@@ -1364,10 +1398,6 @@ class Calculator:
                 inputNum.delete("1.0", END)
                 inputNum.insert(END, number, "tag-right")
                 inputNum.configure(state="disabled")
-                for binButton in self.binButtonList:
-                    binButton.configure(state="disabled")
-                for alphaButton in self.alphaButtonList:
-                    alphaButton.configure(state="disabled")
                 self.pastValue = 4
         # 라디오 버튼 목록
         hexNumeral = Radiobutton(window, text="HEX", value=1, variable=self.radioValue, font=radioFont, command=selectRadio)
@@ -1427,19 +1457,29 @@ class Calculator:
         for alphaButton in self.alphaButtonList:
             alphaButton.configure(state="disabled")
 
-    def printWindow(self, screenValue):
+    def printWindow(self):
         # 메뉴 변수
         menubar = Menu(window)
         calcMenu = Menu(menubar, tearoff=0)
-        calcMenu.add_command(label="산술", command=self.printNormalButtons)
-        calcMenu.add_command(label="공학", command=self.printScientificButtons)
-        calcMenu.add_command(label="프로그래머", command=self.printComputerButtons)
+        calcMenu.add_command(label="산술", command=self.printNormalCalc)
+        calcMenu.add_command(label="공학", command=self.printScientificCalc)
+        calcMenu.add_command(label="프로그래머", command=self.printComputerCalc)
         menubar.add_cascade(label="계산기", menu=calcMenu)
+        unitMenu = Menu(menubar, tearoff=0)
+        unitMenu.add_command(label="온도", command=unitChanger.temperature)
+        unitMenu.add_command(label="길이", command=self.printScientificCalc)
+        unitMenu.add_command(label="데이터", command=self.printScientificCalc)
+        unitMenu.add_command(label="무게 및 질량", command=self.printComputerCalc)
+        menubar.add_cascade(label="단위 변환", menu=unitMenu)
+        lifeMenu = Menu(menubar, tearoff=0)
+        lifeMenu.add_command(label="급여 계산", command=self.printNormalCalc)
+        lifeMenu.add_command(label="전역일 계산", command=self.printScientificCalc)
+        menubar.add_cascade(label="실생활", menu=lifeMenu)
         window.config(menu=menubar)
-        self.printNormalButtons()
+        self.printNormalCalc()
 
         window.mainloop()
 
 if __name__ == "__main__":
-    mainCalc = Calculator("산술")
-    print(eval("0xa+0x3e"))
+    mainCalc = Calculator()
+    mainCalc.printWindow()

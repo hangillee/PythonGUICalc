@@ -43,12 +43,22 @@ class Calculator:
     octButtonList = []
     binButtonList = []
 
-    #프로그래머용 계산기 변수
+    # 프로그래머용 계산기 변수
     isComputerCalc = 0
     pastValue = 0
 
+    # 연산자 키 이벤트 처리용 변수
+    specialChars = [
+        'quoteleft', 'exclam', 'at', 'numbersign', 'asciitilde',
+        'dollar', 'percent', 'asciicircum', 'ampersand'
+    ]
+
+    # 소수점 반복 출력 방지용 변수
+    isPointPrint = 0
+
     # 버튼 키보드 입력 이벤트
     def pressButtonKey(self, event):
+        print(event)
         if event.keycode == 13 or event.char == "=": # Return (결과 반환)
             # 버튼 상에서의 연산자를 eval 가능한 연산자로 치환
             expression = inputNum.get("1.0", END)
@@ -242,6 +252,7 @@ class Calculator:
             self.printResult = 1
             self.isZeroDivision = 0
             self.isPlusMinus = 0
+            self.isPointPrint = 0
             # 버튼 활성화 비활성화 여부 결정
             for expButton in self.expButtonList:
                 expButton.config(state=NORMAL)
@@ -287,7 +298,7 @@ class Calculator:
                             inputNum.insert("1.0", pastResult, "tag-right")
                             inputNum.configure(state="disabled")
             # ZeroDivisionError가 일어나지 않았을 때만
-            if not self.isZeroDivision:
+            if not self.isZeroDivision and not event.keysym in self.specialChars or event.keycode == 16:
                 self.printResult = 0
                 inputNum.configure(state=NORMAL)
                 # 프로그래머용 계산기일 경우 입력 제한
@@ -300,6 +311,7 @@ class Calculator:
                             pass
                         else:
                             inputNum.insert(INSERT, event.char, "tag-right")
+                            inputNum.configure(state="disabled")
                     # 8진수 입력
                     elif numericValue == 3:
                         # 16진수 수와 8, 9 입력 금지
@@ -309,6 +321,7 @@ class Calculator:
                             pass
                         else:
                             inputNum.insert(INSERT, event.char, "tag-right")
+                            inputNum.configure(state="disabled")
                     # 2진수 입력
                     elif numericValue == 4:
                         # 16진수 수와 2~9까지 입력 금지
@@ -318,6 +331,7 @@ class Calculator:
                             pass
                         else:
                             inputNum.insert(INSERT, event.char, "tag-right")
+                            inputNum.configure(state="disabled")
                     # 16진수 모든 입력 가능 (16진수 수 이외의 알파벳 제외)
                     else:
                         if ord(event.char.upper()) in range(ord("G"), ord("Z") + 1)\
@@ -325,6 +339,7 @@ class Calculator:
                             pass
                         else:
                             inputNum.insert(INSERT, event.char, "tag-right")
+                            inputNum.configure(state="disabled")
                 else:
                     if not event.char.isdigit():
                         #컴퓨터용 계산기 외의 계산기에서도 알파벳 입력 제한
@@ -332,10 +347,27 @@ class Calculator:
                             pass
                         else:
                             inputNum.insert(INSERT, event.char, "tag-right")
+                            inputNum.configure(state="disabled")
                     else:
                         inputNum.insert(INSERT, event.char, "tag-right")
+                        inputNum.configure(state="disabled")
+                    # 소수점이 출력되었음을 알림
+                    if event.char == "." and self.isPointPrint == 0:
+                        print("enter")
+                        self.isPointPrint = 1
+                        inputNum.insert(INSERT, event.char, "tag-right")
+                        inputNum.configure(state="disabled")
+                    elif self.isPointPrint == 1:
+                        if event.char == ".":
+                            inputNum.configure(state=NORMAL)
+                            inputNum.delete("%s-1c" % INSERT, INSERT)
+                            inputNum.configure(state="disabled")
+                        elif not event.char.isdigit():
+                            print("enter3")
+                            inputNum.insert(INSERT, event.char, "tag-right")
+                            inputNum.configure(state="disabled")
+                            self.isPointPrint = 0
                 entryString = inputNum.get("1.0", INSERT)
-                print(entryString)
                 # 괄호 갯수 입력 제한
                 if event.char == ")":
                     if not entryString[-2].isdigit():
@@ -601,6 +633,7 @@ class Calculator:
             self.printResult = 1
             self.isZeroDivision = 0
             self.isPlusMinus = 0
+            self.isPointPrint = 0
             # 버튼 활성화 비활성화 여부 결정
             for expButton in self.expButtonList:
                 expButton.config(state=NORMAL)
@@ -618,6 +651,7 @@ class Calculator:
                 self.printResult = 1
                 self.isZeroDivision = 0
                 self.isPlusMinus = 0
+                self.isPointPrint = 0
                 # 버튼 활성화 비활성화 여부 결정
                 for expButton in self.expButtonList:
                     expButton.config(state=NORMAL)
@@ -1053,7 +1087,26 @@ class Calculator:
                 self.printResult = 0
                 inputNum.configure(state=NORMAL)
                 inputNum.insert(INSERT, value, "tag-right")
+                inputNum.configure(state="disabled")
+                # 소수점이 출력되었음을 알림
+                if value == "." and self.isPointPrint == 0:
+                    print("enter")
+                    self.isPointPrint = 1
+                    inputNum.configure(state=NORMAL)
+                    inputNum.insert(INSERT, value, "tag-right")
+                    inputNum.configure(state="disabled")
+                elif self.isPointPrint == 1:
+                    if value == ".":
+                        inputNum.configure(state=NORMAL)
+                        inputNum.delete("%s-1c" % INSERT, INSERT)
+                        inputNum.configure(state="disabled")
+                    elif not value.isdigit():
+                        inputNum.configure(state=NORMAL)
+                        inputNum.insert(INSERT, value, "tag-right")
+                        inputNum.configure(state="disabled")
+                        self.isPointPrint = 0
                 entryString = inputNum.get("1.0", INSERT)
+                print(entryString)
                 # 괄호 갯수 입력 제한
                 if value == ")":
                     if not entryString[-2].isdigit():
@@ -1092,7 +1145,6 @@ class Calculator:
                     # 식을 완성하지 않고 다른 연산자를 입력 시 자동 변환
                     if not entryString[-1].isdigit():
                         if not entryString[-2].isdigit():
-                            print("enter")
                             if entryString[-2] == ")" or entryString[-2] == "(" or entryString[-1] == "(":
                                 pass
                             elif ord(entryString[-2]) in range(ord("A"), ord("G")) or ord(entryString[-1]) in range(ord("A"), ord("G")):
@@ -1106,7 +1158,7 @@ class Calculator:
                                 else:
                                     inputNum.configure(state=NORMAL)
                                     inputNum.delete("%s-1c" % INSERT, INSERT)
-                                    inputNum.insert(INSERT, "0"+value, "tag-right")
+                                    inputNum.insert(INSERT, "0" + value, "tag-right")
                                     inputNum.configure(state="disabled")
                             else:
                                 inputNum.configure(state=NORMAL)
@@ -1482,7 +1534,7 @@ class Calculator:
         menubar.add_cascade(label="계산기", menu=calcMenu)
         unitMenu = Menu(menubar, tearoff=0)
         unitMenu.add_command(label="온도", command=unitChanger.temperature)
-        unitMenu.add_command(label="길이", command=self.printScientificCalc)
+        unitMenu.add_command(label="길이", command=unitChanger.length)
         unitMenu.add_command(label="데이터", command=self.printScientificCalc)
         unitMenu.add_command(label="무게 및 질량", command=self.printComputerCalc)
         menubar.add_cascade(label="단위 변환", menu=unitMenu)

@@ -214,6 +214,7 @@ class Calculator:
             # ZeroDivisionError 예외처리
             try:
                 result = eval(expression)
+                result = round(result, 12)
                 strResult = str(result)
                 if numericType == 1:
                     strResult = f'{int(hex(result), 16):01X}'
@@ -264,9 +265,6 @@ class Calculator:
             else:
                 pass
         else:
-            if event.char.isalpha():
-                if ord(event.char) in range(ord("a"), ord("g")):
-                    event.char = event.char.upper()
             # 초기 화면 0표기와 연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1:
                 if event.char.isdigit():
@@ -298,37 +296,46 @@ class Calculator:
                     # 10진수 입력
                     if numericValue == 2:
                         # 16진수 수 입력 금지 (모든 알파벳 포함)
-                        if ord(event.char.upper()) in range(ord("A"), ord("Z")+1):
+                        if ord(event.char.upper()) in range(ord("A"), ord("Z")+1) or event.char == ".":
                             pass
                         else:
                             inputNum.insert(INSERT, event.char, "tag-right")
                     # 8진수 입력
                     elif numericValue == 3:
                         # 16진수 수와 8, 9 입력 금지
-                        if ord(event.char.upper()) in range(ord("A"), ord("Z")+1) or ord(event.char) in range(ord("8"), ord("9")+1):
+                        if ord(event.char.upper()) in range(ord("A"), ord("Z")+1)\
+                                or ord(event.char) in range(ord("8"), ord("9")+1)\
+                                or event.char == ".":
                             pass
                         else:
                             inputNum.insert(INSERT, event.char, "tag-right")
                     # 2진수 입력
                     elif numericValue == 4:
                         # 16진수 수와 2~9까지 입력 금지
-                        if ord(event.char.upper()) in range(ord("A"), ord("Z")+1) or ord(event.char) in range(ord("2"), ord("9")+1):
+                        if ord(event.char.upper()) in range(ord("A"), ord("Z")+1)\
+                                or ord(event.char) in range(ord("2"), ord("9")+1)\
+                                or event.char == ".":
                             pass
                         else:
                             inputNum.insert(INSERT, event.char, "tag-right")
                     # 16진수 모든 입력 가능 (16진수 수 이외의 알파벳 제외)
                     else:
-                        if ord(event.char.upper()) in range(ord("G"), ord("Z") + 1):
+                        if ord(event.char.upper()) in range(ord("G"), ord("Z") + 1)\
+                                or event.char == ".":
                             pass
                         else:
                             inputNum.insert(INSERT, event.char, "tag-right")
                 else:
-                    #컴퓨터용 계산기 외의 계산기에서도 알파벳 입력 제한
-                    if ord(event.char.upper()) in range(ord("A"), ord("Z") + 1):
-                        pass
+                    if not event.char.isdigit():
+                        #컴퓨터용 계산기 외의 계산기에서도 알파벳 입력 제한
+                        if ord(event.char.upper()) in range(ord("A"), ord("Z") + 1):
+                            pass
+                        else:
+                            inputNum.insert(INSERT, event.char, "tag-right")
                     else:
                         inputNum.insert(INSERT, event.char, "tag-right")
                 entryString = inputNum.get("1.0", INSERT)
+                print(entryString)
                 # 괄호 갯수 입력 제한
                 if event.char == ")":
                     if not entryString[-2].isdigit():
@@ -372,6 +379,17 @@ class Calculator:
                                     pass
                                 elif ord(entryString[-2]) in range(ord("A"), ord("G")) or ord(entryString[-1]) in range(ord("A"), ord("G")):
                                     pass
+                                elif entryString[-1] == ".":
+                                    if entryString[-2] == ".":
+                                        inputNum.configure(state=NORMAL)
+                                        inputNum.delete("%s-2c" % INSERT, INSERT)
+                                        inputNum.insert(INSERT, event.char, "tag-right")
+                                        inputNum.configure(state="disabled")
+                                    else:
+                                        inputNum.configure(state=NORMAL)
+                                        inputNum.delete("%s-1c" % INSERT, INSERT)
+                                        inputNum.insert(INSERT, "0" + event.char, "tag-right")
+                                        inputNum.configure(state="disabled")
                                 else:
                                     inputNum.configure(state=NORMAL)
                                     inputNum.delete("%s-2c" % INSERT, INSERT)
@@ -555,6 +573,7 @@ class Calculator:
             # ZeroDivisionError 예외처리
             try:
                 result = eval(expression)
+                result = round(result, 12)
                 strResult = str(result)
                 if numericType == 1:
                     strResult = f'{int(hex(result), 16):01X}'
@@ -780,7 +799,7 @@ class Calculator:
                 inputNum.insert("1.0", pastResult, "tag-right")
                 inputNum.configure(state="disabled")
             number = float(inputNum.get("1.0", END))
-            result = str(pow(number, 2))
+            result = str(round(pow(number, 2), 1))
             inputNum.configure(state=NORMAL)
             # 연산 기호를 포함한 출력
             inputNum.insert(END, "²" + "\n", "tag-right")
@@ -835,22 +854,6 @@ class Calculator:
             # 연산 기호를 포함한 출력
             inputNum.insert("1.0","√", "tag-right")
             inputNum.insert(END, "\n", "tag-right")
-            inputNum.insert("2.0", "= " + result, "tag-right")
-            inputNum.configure(state="disabled")
-            self.printResult = 1
-        elif value == "x²":
-            # 연산 결과를 활용해 연계 계산을 위한 조건
-            if self.printResult == 1 and not inputNum.get("1.0", END) == "0\n":
-                inputNum.configure(state=NORMAL)
-                pastResult = inputNum.get("2.2", "%s" % INSERT)
-                inputNum.delete("1.0", END)
-                inputNum.insert("1.0", pastResult, "tag-right")
-                inputNum.configure(state="disabled")
-            number = float(inputNum.get("1.0", END))
-            result = str(pow(number, 2))
-            inputNum.configure(state=NORMAL)
-            # 연산 기호를 포함한 출력
-            inputNum.insert(END, "²" + "\n", "tag-right")
             inputNum.insert("2.0", "= " + result, "tag-right")
             inputNum.configure(state="disabled")
             self.printResult = 1
@@ -1089,10 +1092,22 @@ class Calculator:
                     # 식을 완성하지 않고 다른 연산자를 입력 시 자동 변환
                     if not entryString[-1].isdigit():
                         if not entryString[-2].isdigit():
+                            print("enter")
                             if entryString[-2] == ")" or entryString[-2] == "(" or entryString[-1] == "(":
                                 pass
                             elif ord(entryString[-2]) in range(ord("A"), ord("G")) or ord(entryString[-1]) in range(ord("A"), ord("G")):
                                 pass
+                            elif entryString[-1] == ".":
+                                if entryString[-2] == ".":
+                                    inputNum.configure(state=NORMAL)
+                                    inputNum.delete("%s-2c" % INSERT, INSERT)
+                                    inputNum.insert(INSERT, value, "tag-right")
+                                    inputNum.configure(state="disabled")
+                                else:
+                                    inputNum.configure(state=NORMAL)
+                                    inputNum.delete("%s-1c" % INSERT, INSERT)
+                                    inputNum.insert(INSERT, "0"+value, "tag-right")
+                                    inputNum.configure(state="disabled")
                             else:
                                 inputNum.configure(state=NORMAL)
                                 inputNum.delete("%s-2c" % INSERT, INSERT)
@@ -1471,10 +1486,6 @@ class Calculator:
         unitMenu.add_command(label="데이터", command=self.printScientificCalc)
         unitMenu.add_command(label="무게 및 질량", command=self.printComputerCalc)
         menubar.add_cascade(label="단위 변환", menu=unitMenu)
-        lifeMenu = Menu(menubar, tearoff=0)
-        lifeMenu.add_command(label="급여 계산", command=self.printNormalCalc)
-        lifeMenu.add_command(label="전역일 계산", command=self.printScientificCalc)
-        menubar.add_cascade(label="실생활", menu=lifeMenu)
         window.config(menu=menubar)
         self.printNormalCalc()
 

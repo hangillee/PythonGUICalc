@@ -47,6 +47,10 @@ class UnitChanger:
                 self.temperatureChanger()
             elif self.isLength == 1:
                 self.lengthChanger()
+            elif self.isData == 1:
+                self.dataSizeChanger()
+            elif self.isWeight == 1:
+                self.weightChanger()
             self.printResult = 1
             inputNum.configure(state="disabled")
             inputNum02.configure(state="disabled")
@@ -66,6 +70,10 @@ class UnitChanger:
                     self.temperatureChanger()
                 elif self.isLength == 1:
                     self.lengthChanger()
+                elif self.isData == 1:
+                    self.dataSizeChanger()
+                elif self.isWeight == 1:
+                    self.weightChanger()
                 inputNum.configure(state="disabled")
             else:
                 pass
@@ -87,6 +95,10 @@ class UnitChanger:
                     self.temperatureChanger()
                 elif self.isLength == 1:
                     self.lengthChanger()
+                elif self.isData == 1:
+                    self.dataSizeChanger()
+                elif self.isWeight == 1:
+                    self.weightChanger()
 
     def pressButton(self, value):
         # 전체 삭제
@@ -101,6 +113,10 @@ class UnitChanger:
                 self.temperatureChanger()
             elif self.isLength == 1:
                 self.lengthChanger()
+            elif self.isData == 1:
+                self.dataSizeChanger()
+            elif self.isWeight == 1:
+                self.weightChanger()
             self.printResult = 1
             inputNum.configure(state="disabled")
             inputNum02.configure(state="disabled")
@@ -120,6 +136,10 @@ class UnitChanger:
                     self.temperatureChanger()
                 elif self.isLength == 1:
                     self.lengthChanger()
+                elif self.isData == 1:
+                    self.dataSizeChanger()
+                elif self.isWeight == 1:
+                    self.weightChanger()
                 inputNum.configure(state="disabled")
             else:
                 pass
@@ -168,21 +188,36 @@ class UnitChanger:
                 self.temperatureChanger()
             elif self.isLength == 1:
                 self.lengthChanger()
+            elif self.isData == 1:
+                self.dataSizeChanger()
+            elif self.isWeight == 1:
+                self.weightChanger()
 
+    # 위 옵션 메뉴 값 지정
     def setUpperOptionValue(self, upperValue):
         self.upperValue = upperValue
         if self.isTemperature == 1:
             self.temperatureChanger()
         elif self.isLength == 1:
             self.lengthChanger()
+        elif self.isData == 1:
+            self.dataSizeChanger()
+        elif self.isWeight == 1:
+            self.weightChanger()
 
+    # 아래 옵션 메뉴 값 지정
     def setLowerOptionValue(self, lowerValue):
         self.lowerValue = lowerValue
         if self.isTemperature == 1:
             self.temperatureChanger()
         elif self.isLength == 1:
             self.lengthChanger()
+        elif self.isData == 1:
+            self.dataSizeChanger()
+        elif self.isWeight == 1:
+            self.weightChanger()
 
+    # 온도 단위 변환기 화면
     def temperature(self):
         self.isTemperature = 1
         self.isLength = 0
@@ -247,7 +282,7 @@ class UnitChanger:
                                     relief="groove", command=click, font=self.font, padx=0, pady=0)
             buttonObject.grid(row=rowIndex, column=colIndex, sticky="nesw")
             # 결과 출력 버튼 색 변경
-            if button == "=":
+            if button == "←":
                 buttonObject.configure(bg="skyblue")
             colIndex += 1
             if colIndex > 2:
@@ -255,10 +290,12 @@ class UnitChanger:
                 colIndex = 0
         self.window.bind("<Key>", self.pressButtonKey)
 
+    # 온도 단위 변환 함수
     def temperatureChanger(self):
         inputNum02.configure(state=tk.NORMAL)
         inputNum02.delete("1.0", tk.END)
         inputNum02.configure(state="disabled")
+        # 섭씨를 기준으로 변환할 때
         if self.upperValue == "섭씨":
             if self.lowerValue == "화씨":
                 number = inputNum.get("1.0", tk.INSERT)
@@ -281,6 +318,7 @@ class UnitChanger:
                 inputNum02.configure(state=tk.NORMAL)
                 inputNum02.insert("1.0", result)
                 inputNum02.configure(state="disabled")
+        # 화씨를 기준으로 변환할 때
         elif self.upperValue == "화씨":
             if self.lowerValue == "화씨":
                 number = inputNum.get("1.0", tk.INSERT)
@@ -303,6 +341,7 @@ class UnitChanger:
                 inputNum02.configure(state=tk.NORMAL)
                 inputNum02.insert("1.0", result)
                 inputNum02.configure(state="disabled")
+        # 절대 온도(켈빈)을 기준으로 변환할 때
         elif self.upperValue == "절대 온도":
             if self.lowerValue == "화씨":
                 number = inputNum.get("1.0", tk.INSERT)
@@ -326,6 +365,7 @@ class UnitChanger:
                 inputNum02.insert("1.0", result)
                 inputNum02.configure(state="disabled")
 
+    # 길이 단위 변환 화면
     def length(self):
         self.isTemperature = 0
         self.isLength = 1
@@ -407,12 +447,13 @@ class UnitChanger:
                 rowIndex += 1
                 colIndex = 0
         self.window.bind("<Key>", self.pressButtonKey)
-
+    
+    # 길이 단위 변환 함수
     def lengthChanger(self):
         inputNum02.configure(state=tk.NORMAL)
         inputNum02.delete("1.0", tk.END)
         inputNum02.configure(state="disabled")
-        # 센티 미터를 기준으로 반환할 때
+        # 센티 미터를 기준으로 변환할 때
         if self.upperValue == "센티미터":
             if self.lowerValue == "밀리미터":
                 number = inputNum.get("1.0", tk.INSERT)
@@ -870,6 +911,802 @@ class UnitChanger:
                 inputNum02.insert("1.0", result)
                 inputNum02.configure(state="disabled")
             elif self.lowerValue == "마일":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+    
+    # 데이터 단위 변환 화면
+    def datasize(self):
+        self.isTemperature = 0
+        self.isLength = 0
+        self.isData = 1
+        self.isWeight = 0
+
+        self.menuFont = tf.Font(family="맑은 고딕", size=12, weight="bold")
+        self.font = tf.Font(family="맑은 고딕", size=15)
+        widgetList = self.allChildren(self.window)
+        for item in widgetList:
+            item.grid_forget()
+
+        global inputNum
+        inputNum = tk.Text(self.window, width=30, height=1, relief="groove",\
+                           font=self.font, background="gray95", padx=10)
+        inputNum.grid(row=0, column=0, columnspan=4)
+        inputNum.insert(tk.END, "0")
+        self.printResult = 1
+        inputNum.configure(state="disabled")
+
+        variable = tk.StringVar(self.window)
+        variable.set("비트")
+        optionMenu = tk.OptionMenu(self.window, variable,
+                                   "비트", "바이트", "킬로바이트", "메가바이트",
+                                   "기가바이트", "테라바이트", "페타바이트",
+                                   command=self.setUpperOptionValue)
+        self.upperValue = "비트"
+        optionMenu.grid(row=1, column=0, columnspan=3, sticky="nesw")
+        optionMenu.config(font=self.menuFont, relief=tk.GROOVE)
+
+        global inputNum02
+        inputNum02 = tk.Text(self.window, width=30, height=1, relief="groove",\
+                             font=self.font, background="gray95", padx=10)
+        inputNum02.grid(row=2, column=0, columnspan=4)
+        inputNum02.insert(tk.END, "0")
+        self.printResult = 1
+        inputNum02.configure(state="disabled")
+
+        variable = tk.StringVar(self.window)
+        variable.set("바이트")
+        optionMenu02 = tk.OptionMenu(self.window, variable,
+                                     "비트", "바이트", "킬로바이트", "메가바이트",
+                                     "기가바이트", "테라바이트", "페타바이트",
+                                     command=self.setLowerOptionValue)
+        self.lowerValue = "바이트"
+        optionMenu02.grid(row=3, column=0, columnspan=3, sticky="nesw")
+        optionMenu02.config(font=self.menuFont, relief=tk.GROOVE)
+        self.dataSizeChanger()
+
+        # 버튼 그리드 변수
+        rowIndex = 4
+        colIndex = 0
+
+        # 버튼 텍스트 변수
+        buttonText = [
+            'CE', 'AC', '←',
+            '7', '8', '9',
+            '4', '5', '6',
+            '1', '2', '3',
+            '.', '0', '±'
+        ]
+
+        # 버튼 표시
+        for button in buttonText:
+            def click(t=button):
+                self.pressButton(t)
+
+            buttonObject = tk.Button(self.window, text=button, width=10, height=2, \
+                                     relief="groove", command=click, font=self.font, padx=0, pady=0)
+            buttonObject.grid(row=rowIndex, column=colIndex, sticky="nesw")
+            # 데이터 크기는 음수 전환 불가
+            if button == "±":
+                buttonObject.configure(state="disabled")
+            # 결과 출력 버튼 색 변경
+            if button == "←":
+                buttonObject.configure(bg="skyblue")
+            colIndex += 1
+            if colIndex > 2:
+                rowIndex += 1
+                colIndex = 0
+        self.window.bind("<Key>", self.pressButtonKey)
+        
+    # 데이터 단위 변환 함수
+    def dataSizeChanger(self):
+        inputNum02.configure(state=tk.NORMAL)
+        inputNum02.delete("1.0", tk.END)
+        inputNum02.configure(state="disabled")
+        # 비트를 기준으로 변환할 때
+        if self.upperValue == "비트":
+            if self.lowerValue == "비트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 8)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "킬로바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 8000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "메가바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 8000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "기가바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 8000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "테라바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 8000000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "페타바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 8000000000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+        # 바이트를 기준으로 변환할 때
+        elif self.upperValue == "바이트":
+            if self.lowerValue == "비트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 8)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "킬로바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "메가바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "기가바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "테라바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "페타바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000000000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+        # 킬로바이트를 기준으로 변환할 때
+        elif self.upperValue == "킬로바이트":
+            if self.lowerValue == "비트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 8000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "킬로바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "메가바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "기가바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "테라바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "페타바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+        # 메가바이트를 기준으로 변환할 때
+        elif self.upperValue == "메가바이트":
+            if self.lowerValue == "비트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 8000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "킬로바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "메가바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "기가바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "테라바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "페타바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+        # 기가바이트를 기준으로 변환할 때
+        elif self.upperValue == "기가바이트":
+            if self.lowerValue == "비트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 8000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "킬로바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "메가바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "기가바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "테라바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "페타바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+        # 테라바이트를 기준으로 변환할 때
+        elif self.upperValue == "테라바이트":
+            if self.lowerValue == "비트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 8000000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "킬로바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "메가바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "기가바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "테라바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "페타바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+        # 페타바이트를 기준으로 변환할 때
+        elif self.upperValue == "페타바이트":
+            if self.lowerValue == "비트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 8000000000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000000000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "킬로바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "메가바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "기가바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "테라바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "페타바이트":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+                
+    # 무게 단위 변환 화면
+    def weight(self):
+        self.isTemperature = 0
+        self.isLength = 0
+        self.isData = 0
+        self.isWeight = 1
+
+        self.menuFont = tf.Font(family="맑은 고딕", size=12, weight="bold")
+        self.font = tf.Font(family="맑은 고딕", size=15)
+        widgetList = self.allChildren(self.window)
+        for item in widgetList:
+            item.grid_forget()
+
+        global inputNum
+        inputNum = tk.Text(self.window, width=30, height=1, relief="groove",\
+                           font=self.font, background="gray95", padx=10)
+        inputNum.grid(row=0, column=0, columnspan=4)
+        inputNum.insert(tk.END, "0")
+        self.printResult = 1
+        inputNum.configure(state="disabled")
+
+        variable = tk.StringVar(self.window)
+        variable.set("킬로그램")
+        optionMenu = tk.OptionMenu(self.window, variable,
+                                   "밀리그램", "그램", "킬로그램",
+                                   "톤", "파운드", "온스",
+                                   command=self.setUpperOptionValue)
+        self.upperValue = "킬로그램"
+        optionMenu.grid(row=1, column=0, columnspan=3, sticky="nesw")
+        optionMenu.config(font=self.menuFont, relief=tk.GROOVE)
+
+        global inputNum02
+        inputNum02 = tk.Text(self.window, width=30, height=1, relief="groove",\
+                             font=self.font, background="gray95", padx=10)
+        inputNum02.grid(row=2, column=0, columnspan=4)
+        inputNum02.insert(tk.END, "0")
+        self.printResult = 1
+        inputNum02.configure(state="disabled")
+
+        variable = tk.StringVar(self.window)
+        variable.set("파운드")
+        optionMenu02 = tk.OptionMenu(self.window, variable,
+                                     "밀리그램", "그램", "킬로그램",
+                                     "톤", "파운드", "온스",
+                                     command=self.setLowerOptionValue)
+        self.lowerValue = "파운드"
+        optionMenu02.grid(row=3, column=0, columnspan=3, sticky="nesw")
+        optionMenu02.config(font=self.menuFont, relief=tk.GROOVE)
+        self.weightChanger()
+
+        # 버튼 그리드 변수
+        rowIndex = 4
+        colIndex = 0
+
+        # 버튼 텍스트 변수
+        buttonText = [
+            'CE', 'AC', '←',
+            '7', '8', '9',
+            '4', '5', '6',
+            '1', '2', '3',
+            '.', '0', '±'
+        ]
+
+        # 버튼 표시
+        for button in buttonText:
+            def click(t=button):
+                self.pressButton(t)
+
+            buttonObject = tk.Button(self.window, text=button, width=10, height=2, \
+                                     relief="groove", command=click, font=self.font, padx=0, pady=0)
+            buttonObject.grid(row=rowIndex, column=colIndex, sticky="nesw")
+            # 결과 출력 버튼 색 변경
+            if button == "←":
+                buttonObject.configure(bg="skyblue")
+            colIndex += 1
+            if colIndex > 2:
+                rowIndex += 1
+                colIndex = 0
+        self.window.bind("<Key>", self.pressButtonKey)
+
+    # 무게 단위 변환 함수
+    def weightChanger(self):
+        inputNum02.configure(state=tk.NORMAL)
+        inputNum02.delete("1.0", tk.END)
+        inputNum02.configure(state="disabled")
+        # 밀리그램을 기준으로 변환할 때
+        if self.upperValue == "밀리그램":
+            if self.lowerValue == "밀리그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "킬로그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "톤":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "파운드":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 453592.37)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "온스":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 28349.523)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+        # 그램을 기준으로 변환할 때
+        elif self.upperValue == "그램":
+            if self.lowerValue == "밀리그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "킬로그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "톤":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "파운드":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 453.59237)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "온스":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 28.349523)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+        # 킬로그램을 기준으로 변환할 때
+        elif self.upperValue == "킬로그램":
+            if self.lowerValue == "밀리그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "킬로그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "톤":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 1000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "파운드":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 2.204623)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "온스":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 35.273962)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+        # 톤을 기준으로 변환할 때
+        elif self.upperValue == "톤":
+            if self.lowerValue == "밀리그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "킬로그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 1000)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "톤":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "파운드":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 2204.623)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "온스":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 35273.962)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+        #파운드를 기준으로 변환할 때
+        elif self.upperValue == "파운드":
+            if self.lowerValue == "밀리그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 453592.37)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 453.59237)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "킬로그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 2.204623)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "톤":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 2204.623)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "파운드":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "온스":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 16)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+        # 온스를 기준으로 변환할 때
+        elif self.upperValue == "온스":
+            if self.lowerValue == "밀리그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 28349.523)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number * 28.349523)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "킬로그램":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 35.273962)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "톤":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 35273.962)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "파운드":
+                number = inputNum.get("1.0", tk.INSERT)
+                number = float(number)
+                result = str(number / 16)
+                inputNum02.configure(state=tk.NORMAL)
+                inputNum02.insert("1.0", result)
+                inputNum02.configure(state="disabled")
+            elif self.lowerValue == "온스":
                 number = inputNum.get("1.0", tk.INSERT)
                 number = float(number)
                 result = str(number)

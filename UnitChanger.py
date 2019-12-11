@@ -8,7 +8,7 @@ class UnitChanger:
         'numbersign', 'dollar', 'percent',
         'asciicircum', 'ampersand', 'asterisk',
         'parenleft', 'parenright', 'minus',
-        'equal', 'plus', 'slash'
+        'equal', 'plus', 'slash', 'backslash'
     ]
     # 결과 출력 여부 체크
     printResult = 0

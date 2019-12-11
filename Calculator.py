@@ -50,7 +50,7 @@ class Calculator:
     # 연산자 키 이벤트 처리용 변수
     specialChars = [
         'quoteleft', 'exclam', 'at', 'numbersign', 'asciitilde',
-        'dollar', 'percent', 'asciicircum', 'ampersand'
+        'dollar', 'percent', 'asciicircum', 'ampersand', 'backslash'
     ]
 
     # 소수점 반복 출력 방지용 변수

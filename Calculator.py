@@ -50,7 +50,10 @@ class Calculator:
     # 연산자 키 이벤트 처리용 변수
     specialChars = [
         'quoteleft', 'exclam', 'at', 'numbersign', 'asciitilde',
-        'dollar', 'percent', 'asciicircum', 'ampersand', 'backslash'
+        'dollar', 'percent', 'asciicircum', 'ampersand', 'backslash',
+        'parenleft', 'parenright', 'colon', 'semicolon', 'quotedbl', 'comma',
+        'quoteright', 'bracketleft', 'bracketright', 'less', 'greater',
+        'question', 'comma', 'braceright', 'braceleft'
     ]
 
     # 소수점 반복 출력 방지용 변수
@@ -84,6 +87,8 @@ class Calculator:
                 expression = expression.replace(" Lsh ", "<<")
             if expression.find(" Rsh "):
                 expression = expression.replace(" Rsh ", ">>")
+
+            # 진수별 계산식 생성을 위한 진수 상태 변수
             numericType = self.radioValue.get()
             # 16진수
             if numericType == 1:
@@ -263,18 +268,28 @@ class Calculator:
             inputNum.configure(state="disabled")
         # Backspace 기능
         elif event.keycode == 8 and not self.isZeroDivision:
+            entryString = inputNum.get("1.0", END)
             if len(inputNum.get("1.0", END)) == 2:
                 inputNum.configure(state=NORMAL)
                 inputNum.insert("1.0", "0", "tag-right")
+                self.printResult = 0
+                print(inputNum.get("1.0", END))
                 inputNum.configure(state="disabled")
             else:
                 pass
             if not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
+                if entryString[-2] == ".":
+                    self.isPointPrint = 0
                 inputNum.delete("%s-1c" % INSERT, INSERT)
                 inputNum.configure(state="disabled")
             else:
                 pass
+            if self.printResult == 1:
+                inputNum.configure(state=NORMAL)
+                inputNum.delete("2.0", END)
+                inputNum.configure(state="disabled")
+                self.printResult = 0
         else:
             # 초기 화면 0표기와 연산 결과를 활용해 연계 계산을 위한 조건
             if self.printResult == 1:
@@ -297,6 +312,7 @@ class Calculator:
                             inputNum.delete("1.0", END)
                             inputNum.insert("1.0", pastResult, "tag-right")
                             inputNum.configure(state="disabled")
+
             # ZeroDivisionError가 일어나지 않았을 때만
             if not self.isZeroDivision and not event.keysym in self.specialChars or event.keycode == 16:
                 self.printResult = 0
@@ -353,7 +369,6 @@ class Calculator:
                         inputNum.configure(state="disabled")
                     # 소수점이 출력되었음을 알림
                     if event.char == "." and self.isPointPrint == 0:
-                        print("enter")
                         self.isPointPrint = 1
                         inputNum.insert(INSERT, event.char, "tag-right")
                         inputNum.configure(state="disabled")
@@ -363,7 +378,6 @@ class Calculator:
                             inputNum.delete("%s-1c" % INSERT, INSERT)
                             inputNum.configure(state="disabled")
                         elif not event.char.isdigit():
-                            print("enter3")
                             inputNum.insert(INSERT, event.char, "tag-right")
                             inputNum.configure(state="disabled")
                             self.isPointPrint = 0
@@ -426,6 +440,7 @@ class Calculator:
                                     inputNum.configure(state=NORMAL)
                                     inputNum.delete("%s-2c" % INSERT, INSERT)
                                     inputNum.insert(INSERT, event.char, "tag-right")
+                                    print(entryString)
                                     inputNum.configure(state="disabled")
                     # 연산자 뒤에 0이 나와 연산할 수 없는 경우 (소수점 제외)
                     if len(entryString) > 2:
@@ -694,6 +709,7 @@ class Calculator:
                             break
         # Backspace 기능
         elif value == "←":
+            entryString = inputNum.get("1.0", END)
             if len(inputNum.get("1.0", END)) == 2:
                 inputNum.configure(state=NORMAL)
                 inputNum.insert("1.0", "0", "tag-right")
@@ -702,10 +718,17 @@ class Calculator:
                 pass
             if not inputNum.get("1.0", END) == "0\n":
                 inputNum.configure(state=NORMAL)
+                if entryString[-2] == ".":
+                    self.isPointPrint = 0
                 inputNum.delete("%s-1c" % INSERT, INSERT)
                 inputNum.configure(state="disabled")
             else:
                 pass
+            if self.printResult == 1:
+                inputNum.configure(state=NORMAL)
+                inputNum.delete("2.0", END)
+                inputNum.configure(state="disabled")
+                self.printResult = 0
         # 양수 음수 전환
         elif value == "±":
             entryString = inputNum.get("1.0", INSERT)
@@ -1090,23 +1113,15 @@ class Calculator:
                 inputNum.configure(state="disabled")
                 # 소수점이 출력되었음을 알림
                 if value == "." and self.isPointPrint == 0:
-                    print("enter")
                     self.isPointPrint = 1
-                    inputNum.configure(state=NORMAL)
-                    inputNum.insert(INSERT, value, "tag-right")
-                    inputNum.configure(state="disabled")
                 elif self.isPointPrint == 1:
                     if value == ".":
                         inputNum.configure(state=NORMAL)
                         inputNum.delete("%s-1c" % INSERT, INSERT)
                         inputNum.configure(state="disabled")
                     elif not value.isdigit():
-                        inputNum.configure(state=NORMAL)
-                        inputNum.insert(INSERT, value, "tag-right")
-                        inputNum.configure(state="disabled")
                         self.isPointPrint = 0
                 entryString = inputNum.get("1.0", INSERT)
-                print(entryString)
                 # 괄호 갯수 입력 제한
                 if value == ")":
                     if not entryString[-2].isdigit():

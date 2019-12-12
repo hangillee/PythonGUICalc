@@ -4,11 +4,13 @@ import tkinter.font as tf
 class UnitChanger:
     # 사용하지 않는 특수 문자 목록
     specialChars = [
-        'quoteleft', 'exclam', 'at',
+        'quoteleft', 'exclam', 'at', 'Return',
         'numbersign', 'dollar', 'percent',
         'asciicircum', 'ampersand', 'asterisk',
         'parenleft', 'parenright', 'minus',
-        'equal', 'plus', 'slash', 'backslash'
+        'equal', 'plus', 'slash', 'backslash',
+        'underscore', 'Caps_Lock', 'Control_L',
+        'Tab', 'Left', 'Right', 'Down', 'Up'
     ]
     # 결과 출력 여부 체크
     printResult = 0
@@ -37,7 +39,7 @@ class UnitChanger:
     def pressButtonKey(self, event):
         print(event)
         # 전체 삭제
-        if event.keycode == 27:
+        if event.keycode == 27 or event.keysym == "Delete":
             inputNum.configure(state=tk.NORMAL)
             inputNum02.configure(state=tk.NORMAL)
             inputNum.delete("1.0", tk.END)

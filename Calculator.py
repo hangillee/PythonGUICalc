@@ -53,7 +53,8 @@ class Calculator:
         'dollar', 'percent', 'asciicircum', 'ampersand', 'backslash',
         'parenleft', 'parenright', 'colon', 'semicolon', 'quotedbl', 'comma',
         'quoteright', 'bracketleft', 'bracketright', 'less', 'greater',
-        'question', 'comma', 'braceright', 'braceleft'
+        'question', 'comma', 'braceright', 'braceleft', 'underscore',
+        'Caps_Lock', 'Control_L', 'Tab', 'Left', 'Right', 'Down', 'Up'
     ]
 
     # 소수점 반복 출력 방지용 변수
@@ -253,7 +254,7 @@ class Calculator:
                 inputNum.configure(state="disabled")
                 self.printResult = 1
         # 전체 삭제
-        elif event.keycode == 27:
+        elif event.keycode == 27 or event.keysym == "Delete":
             self.printResult = 1
             self.isZeroDivision = 0
             self.isPlusMinus = 0
